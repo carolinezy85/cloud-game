@@ -26,14 +26,26 @@
   #cloud{
     position:relative;width:150px;height:90px;
     animation:float 4s ease-in-out infinite;
-    transition:filter .4s, transform .3s;
+    transition:filter .4s;
     cursor:pointer;
+    transform-origin: center bottom; /* 让弹跳的锚点在底部 */
   }
   @keyframes float{
     0%,100%{transform:translateY(0)}
     50%{transform:translateY(-14px)}
   }
-  /* 给云朵加一点点阴影，在天空蓝上更立体 */
+  
+  /* 💥 新增：Q弹动画 */
+  @keyframes cloudBounce {
+    0% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(10px) scale(1.1, 0.9); }
+    60% { transform: translateY(-5px) scale(0.95, 1.05); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  #cloud.bounce {
+    animation: cloudBounce 0.5s ease-out;
+  }
+
   .puff{position:absolute;background:#fff;border-radius:50%;
     box-shadow:0 15px 30px rgba(0,0,0,.08), inset 0 -6px 15px rgba(0,0,0,.05);
     transition:background .4s}
@@ -52,9 +64,19 @@
     background:#fda4af;opacity:.7;top:62px;transition:opacity .4s}
   .blush.l{left:36px}
   .blush.r{right:36px}
+  
+  /* 👄 嘴巴 + 说话动画 */
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
     transform:translateX(-50%);border-bottom:3px solid #334155;
     border-radius:0 0 16px 16px;transition:all .3s}
+    
+  @keyframes talkAnim {
+    0%, 100% { transform: translateX(-50%) scaleY(1); }
+    50% { transform: translateX(-50%) scaleY(0.2); }
+  }
+  #cloud.talking .mouth {
+    animation: talkAnim 0.2s infinite;
+  }
 
   /* 低状态的样子 */
   #cloud.sad .puff{background:#f1f5f9}
@@ -86,7 +108,7 @@
   #energyFill{background:linear-gradient(90deg,#38bdf8,#22d3ee)}
   #loveFill{background:linear-gradient(90deg,#facc15,#fb923c)}
 
-  /* 按钮 (适配浅色背景) */
+  /* 按钮 */
   #actions{display:flex;gap:12px;margin-top:18px}
   .btn{
     padding:12px 20px;border-radius:999px;border:1px solid rgba(0,0,0,.1);
@@ -138,16 +160,14 @@
 
 <script>
 /* ================================================================
-   ★★★ 配置区：已经填好了你的地址和密钥 ★★★
+   ★★★ 配置区 ★★★
    ================================================================ */
 const API_URL = 'https://coze.nankai.edu.cn/api/proxy/api/v1';
 const API_KEY = 'db31mjl4shhas0akskj0';
-const KB_API  = '';   // 暂时留空
-const KB_ID   = '';   // 暂时留空
+const KB_API  = '';   
+const KB_ID   = '';   
 /* ================================================================ */
 
-
-/* ============ 状态 ============ */
 const KEY = 'xiaoyunduo';
 let s = load();
 
@@ -166,7 +186,6 @@ function save(){
   localStorage.setItem(KEY, JSON.stringify(s));
 }
 
-/* ============ 渲染 ============ */
 const cloud  = document.getElementById('cloud');
 const bubble = document.getElementById('bubble');
 
@@ -183,11 +202,27 @@ function render(){
   cloud.classList.toggle('sleepy', s.energy < 25);
 }
 
+// 🎈 触发 Q弹效果
+function triggerBounce(){
+  cloud.classList.remove('bounce');
+  // 强制浏览器重绘，让动画能重复触发
+  void cloud.offsetWidth;
+  cloud.classList.add('bounce');
+  setTimeout(() => cloud.classList.remove('bounce'), 500);
+}
+
 function say(text, ms = 2600){
   bubble.textContent = text;
   bubble.classList.add('show');
+  
+  // 👄 张嘴说话
+  cloud.classList.add('talking');
+  
   clearTimeout(say._t);
-  say._t = setTimeout(() => bubble.classList.remove('show'), ms);
+  say._t = setTimeout(() => {
+    bubble.classList.remove('show');
+    cloud.classList.remove('talking');
+  }, ms);
 }
 
 function popHearts(n = 3, emoji = '☁️'){
@@ -202,11 +237,11 @@ function popHearts(n = 3, emoji = '☁️'){
   }
 }
 
-/* ============ 互动 ============ */
 async function pet(){
   s.mood = Math.min(100, s.mood + 6);
   s.love += 1;
   popHearts(2, '💗');
+  triggerBounce(); // 💥 触发弹跳
   render(); save();
   say(await askAgent('主人摸了摸你'));
 }
@@ -216,6 +251,7 @@ async function feed(){
   s.energy = Math.min(100, s.energy + 15);
   s.mood   = Math.min(100, s.mood + 3);
   popHearts(3, '✨');
+  triggerBounce(); // 💥 触发弹跳
   render(); save();
   say(await askAgent('主人喂你吃了云朵棉花糖'));
 }
@@ -227,8 +263,6 @@ async function talk(){
 
   const reply = await askAgent(msg, true);
   say(reply, 4000);
-
-  // 把这次对话写进知识库（后台进行，不 await）
   saveMemory(msg, reply);
 
   s.love += 1;
@@ -238,11 +272,9 @@ async function talk(){
 
 cloud.addEventListener('click', pet);
 
-/* ============ Agent 接口 ============ */
 async function askAgent(input, isChat = false){
   if(API_URL && API_KEY){
     try{
-      console.log('📡 正在请求小云朵的大脑...');
       const r = await fetch(API_URL, {
         method:'POST',
         headers:{
@@ -254,21 +286,13 @@ async function askAgent(input, isChat = false){
           state: { mood: s.mood, energy: s.energy, love: s.love }
         })
       });
-
-      if (!r.ok) {
-        throw new Error(`HTTP error! status: ${r.status}`);
-      }
-
+      if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
       const d = await r.json();
-      console.log('✅ 小云朵返回的数据:', d);
-
       return d.reply || d.text || d.answer || d.data?.content || d.data?.reply || '……';
     }catch(e){
       console.error('❌ 调用API失败，启用本地兜底:', e);
     }
   }
-
-  // 本地兜底
   if(s.energy < 25) return pick(localLines.tired);
   if(s.mood   < 45) return pick(localLines.miss);
   if(input.includes('摸')) return pick(localLines.pet);
@@ -277,9 +301,8 @@ async function askAgent(input, isChat = false){
   return pick(localLines.hi);
 }
 
-/* ============ 写入记忆 ============ */
 async function saveMemory(userMsg, agentReply){
-  if(!KB_API || !KB_ID) return;   // 没配就跳过
+  if(!KB_API || !KB_ID) return;
   try{
     await fetch(KB_API, {
       method:'POST',
@@ -289,10 +312,9 @@ async function saveMemory(userMsg, agentReply){
         content: `娇娇说：${userMsg}\n小云朵回：${agentReply}`
       })
     });
-  }catch(e){ /* 存不上也不影响玩 */ }
+  }catch(e){}
 }
 
-/* ============ 本地语录 ============ */
 const localLines = {
   pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我'],
   feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！'],
@@ -302,7 +324,6 @@ const localLines = {
 };
 function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 
-/* ============ 启动 ============ */
 render();
 save();
 
@@ -313,7 +334,6 @@ setTimeout(() => {
   else                   say(pick(localLines.hi));
 }, 600);
 
-// 每 60 秒自然消耗
 setInterval(() => {
   s.mood = Math.max(20, s.mood - 1);
   if(s.energy > 20) s.energy -= 1;

@@ -20,10 +20,7 @@
   }
 
   /* ☔ 雨天模式 */
-  body.weather-rainy {
-    background: linear-gradient(180deg,#64748b 0%,#94a3b8 100%);
-    color: #e2e8f0;
-  }
+  body.weather-rainy { background: linear-gradient(180deg,#64748b 0%,#94a3b8 100%); color: #e2e8f0; }
   body.weather-rainy #bubble { background: rgba(30,41,59,.95); color: #f8fafc; }
   body.weather-rainy #bubble::after { border-top-color: rgba(30,41,59,.95); }
   body.weather-rainy .track { background: rgba(255,255,255,.2); }
@@ -31,15 +28,10 @@
   body.weather-rainy .cloud-bg { opacity: 0.3; }
 
   /* ☁️ 阴天/多云模式 */
-  body.weather-cloudy {
-    background: linear-gradient(180deg,#cbd5e1 0%,#94a3b8 100%);
-  }
+  body.weather-cloudy { background: linear-gradient(180deg,#cbd5e1 0%,#94a3b8 100%); }
 
   /* 🌙 夜晚模式 */
-  body.weather-night {
-    background: linear-gradient(180deg,#1e293b 0%,#0f172a 100%);
-    color: #e2e8f0;
-  }
+  body.weather-night { background: linear-gradient(180deg,#1e293b 0%,#0f172a 100%); color: #e2e8f0; }
   body.weather-night #bubble { background: rgba(30,41,59,.95); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); }
   body.weather-night #bubble::after { border-top-color: rgba(30,41,59,.95); }
   body.weather-night .track { background: rgba(255,255,255,.2); }
@@ -47,7 +39,6 @@
   body.weather-night .cloud-bg { opacity: 0.1; filter: blur(8px); }
   body.weather-night #name, body.weather-night #lv { color: #fff; }
 
-  /* 🌟 夜晚的星星和月亮 */
   .night-sky { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 1.5s; z-index: 0; }
   body.weather-night .night-sky { opacity: 1; }
   .moon { position: absolute; top: 15%; right: 20%; font-size: 40px; animation: float 6s ease-in-out infinite; }
@@ -55,7 +46,6 @@
 
   #sky-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; overflow: hidden; }
   
-  /* 🌧️ 雨滴 */
   .raindrop { position: absolute; top: -20px; width: 2px; height: 15px; background: rgba(255,255,255,.6); border-radius: 2px; animation: fall linear infinite; }
   @keyframes fall { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(110vh); opacity: 0.2; } }
 
@@ -76,14 +66,9 @@
   #cloud-wrapper { display: flex; align-items: center; justify-content: center; width: 150px; height: 90px; transform: scale(1.3); transform-origin: center center; }
 
   /* ☁️ 小云朵本体 */
-  #cloud{
-    position:relative;width:150px;height:90px;
-    animation:float 4s ease-in-out infinite;
-    transition:filter .4s; cursor:pointer; transform-origin: center bottom; 
-  }
+  #cloud{ position:relative;width:150px;height:90px; animation:float 4s ease-in-out infinite; transition:filter .4s; cursor:pointer; transform-origin: center bottom; }
   @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
   
-  /* 💥 Q弹与连击动画 */
   @keyframes cloudBounce { 0% { transform: translateY(0) scale(1); } 30% { transform: translateY(10px) scale(1.1, 0.9); } 60% { transform: translateY(-5px) scale(0.95, 1.05); } 100% { transform: translateY(0) scale(1); } }
   #cloud.bounce { animation: cloudBounce 0.5s ease-out; }
   
@@ -113,12 +98,20 @@
   @keyframes talkAnim { 0%, 100% { transform: translateX(-50%) scaleY(1); } 50% { transform: translateX(-50%) scaleY(0.6); } }
   #cloud.talking .mouth { animation: talkAnim 0.6s ease-in-out infinite; }
 
-  /* 💤 睡觉（闭眼的小月牙） */
-  #cloud.sleeping .eye { height: 8px; width: 14px; background: transparent; border-bottom: 3px solid #334155; border-radius: 0 0 14px 14px; top: 45px; animation: none; }
+  /* 💤 睡觉（闭眼的小月牙）- 加强优先级保护 */
+  #cloud.sleeping .eye { 
+    height: 8px !important; 
+    width: 14px !important; 
+    background: transparent !important; 
+    border-bottom: 3px solid #334155 !important; 
+    border-radius: 0 0 14px 14px !important; 
+    top: 45px !important; 
+    animation: none !important; 
+    transform: none !important;
+  }
   #cloud.sleeping .mouth { width: 10px; height: 10px; border-radius: 50%; border-bottom: 2px solid #334155; top: 66px; }
   #cloud.sleeping .blush { opacity: 0.4; }
   
-  /* 👀 醒来睁眼动画 */
   @keyframes wakeUp { 0% { transform: scaleY(0.1); } 50% { transform: scaleY(1.2); } 100% { transform: scaleY(1); } }
   #cloud.awake .eye { animation: wakeUp 0.6s ease-out; }
 
@@ -131,7 +124,6 @@
   #cloud.looking .eye { animation: lookAround 2s ease-in-out infinite; }
   #cloud.looking .eye.l { left: 48px; } #cloud.looking .eye.r { right: 48px; }
 
-  /* 睡觉 Zzz */
   .zzz { position: absolute; top: -10px; right: 20px; font-size: 14px; font-weight: bold; color: #64748b; opacity: 0; pointer-events: none; animation: floatZ 2s infinite ease-in-out; z-index: 2; }
   @keyframes floatZ { 0% { opacity: 0; transform: translateY(0) scale(0.8); } 50% { opacity: 1; transform: translateY(-20px) scale(1.1); } 100% { opacity: 0; transform: translateY(-40px) scale(0.8); } }
   #cloud.sleeping .zzz { opacity: 1; }
@@ -186,7 +178,6 @@
     <div id="rain-container"></div>
   </div>
 
-  <!-- 🌙 夜晚专属的月亮和星星 -->
   <div class="night-sky">
     <div class="moon">🌙</div>
     <div class="star" style="top: 20%; left: 15%;">✨</div>
@@ -203,7 +194,7 @@
     <div id="bubble"></div>
     <div id="cloud-wrapper">
       <div id="cloud">
-        <div id="accessory"></div> <!-- 👑 配饰容器 -->
+        <div id="accessory"></div>
         <div class="puff p1"></div>
         <div class="puff p2"></div>
         <div class="puff p3"></div>
@@ -249,6 +240,7 @@
 
 const KEY = 'xiaoyunduo';
 let s = load();
+let isManualSleep = false; // 👈 新增：手动睡眠锁，防止被摸摸强行唤醒
 
 function load(){
   const raw = localStorage.getItem(KEY);
@@ -260,10 +252,7 @@ function load(){
   d.energy = Math.max(20, d.energy - Math.floor(hours * 2));
   return d;
 }
-function save(){
-  s.last = Date.now();
-  localStorage.setItem(KEY, JSON.stringify(s));
-}
+function save(){ s.last = Date.now(); localStorage.setItem(KEY, JSON.stringify(s)); }
 
 const cloud  = document.getElementById('cloud');
 const bubble = document.getElementById('bubble');
@@ -278,13 +267,11 @@ function playTone(freq, type = 'sine', duration = 0.1, volume = 0.1, delay = 0) 
   if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+  osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
   gain.gain.setValueAtTime(volume, audioCtx.currentTime + delay);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
   osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.start(audioCtx.currentTime + delay);
-  osc.stop(audioCtx.currentTime + delay + duration);
+  osc.start(audioCtx.currentTime + delay); osc.stop(audioCtx.currentTime + delay + duration);
 }
 const sfx = {
   pet: () => { playTone(600, 'sine', 0.1, 0.15); playTone(800, 'sine', 0.1, 0.1, 0.05); },
@@ -304,23 +291,18 @@ function setWeather(weather) {
     if (rainContainer.children.length === 0) {
       for (let i = 0; i < 40; i++) {
         const drop = document.createElement('div');
-        drop.className = 'raindrop';
-        drop.style.left = Math.random() * 100 + 'vw';
+        drop.className = 'raindrop'; drop.style.left = Math.random() * 100 + 'vw';
         drop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
         drop.style.animationDelay = (Math.random() * 2) + 's';
         rainContainer.appendChild(drop);
       }
     }
   } else if (weather === 'cloudy') {
-    body.classList.add('weather-cloudy');
-    rainContainer.innerHTML = '';
+    body.classList.add('weather-cloudy'); rainContainer.innerHTML = '';
   } else if (weather === 'night') {
-    body.classList.add('weather-night');
-    rainContainer.innerHTML = '';
-  } else {
-    rainContainer.innerHTML = '';
-  }
-  updateAccessory(); // 天气变，配饰也变
+    body.classList.add('weather-night'); rainContainer.innerHTML = '';
+  } else { rainContainer.innerHTML = ''; }
+  updateAccessory();
 }
 
 /* ============ 🎀 配饰系统 ============ */
@@ -328,15 +310,10 @@ function updateAccessory() {
   const acc = document.getElementById('accessory');
   acc.classList.remove('show');
   setTimeout(() => {
-    if (document.body.classList.contains('weather-rainy')) {
-      acc.textContent = '🍃'; // 下雨戴荷叶
-    } else if (s.love >= 50) {
-      acc.textContent = '👑'; // 亲密高戴皇冠
-    } else if (s.love >= 20) {
-      acc.textContent = '🎀'; // 亲密中戴蝴蝶结
-    } else {
-      acc.textContent = ''; // 没配饰
-    }
+    if (document.body.classList.contains('weather-rainy')) { acc.textContent = '🍃'; } 
+    else if (s.love >= 50) { acc.textContent = '👑'; } 
+    else if (s.love >= 20) { acc.textContent = '🎀'; } 
+    else { acc.textContent = ''; }
     if (acc.textContent) acc.classList.add('show');
   }, 300);
 }
@@ -351,9 +328,13 @@ function render(){
   const lv = Math.min(5, Math.floor(s.love / 20) + 1);
   document.getElementById('lv').textContent = `Lv.${lv} · ${titles[lv-1]}`;
 
-  if (s.energy < 15) { cloud.classList.add('sleeping'); } 
-  else if (s.energy >= 30) { cloud.classList.remove('sleeping'); }
-  
+  // 🚨 修复：如果手动说了晚安，不能被能量值强制唤醒
+  if (isManualSleep) {
+    cloud.classList.add('sleeping');
+  } else {
+    if (s.energy < 15) { cloud.classList.add('sleeping'); } 
+    else if (s.energy >= 30) { cloud.classList.remove('sleeping'); }
+  }
   updateAccessory();
 }
 
@@ -371,12 +352,9 @@ function say(text, ms = 2600){
 
 function popHearts(n = 3, emoji = '☁️'){
   for(let i = 0; i < n; i++){
-    const h = document.createElement('div');
-    h.className = 'heart'; h.textContent = emoji;
-    h.style.left = (30 + Math.random() * 90) + 'px';
-    h.style.top  = (60 + Math.random() * 40) + 'px';
-    document.getElementById('stage').appendChild(h);
-    setTimeout(() => h.remove(), 1300);
+    const h = document.createElement('div'); h.className = 'heart'; h.textContent = emoji;
+    h.style.left = (30 + Math.random() * 90) + 'px'; h.style.top = (60 + Math.random() * 40) + 'px';
+    document.getElementById('stage').appendChild(h); setTimeout(() => h.remove(), 1300);
   }
 }
 
@@ -385,36 +363,41 @@ let clickCount = 0;
 let clickTimer = null;
 
 function handleCloudClick() {
-  initAudio(); pet(); // 基础摸摸逻辑
-
+  initAudio(); 
+  
+  // 🚨 修复：睡觉时不可连击，也不触发唤醒
+  if (cloud.classList.contains('sleeping')) { pet(); return; }
+  
+  pet(); 
   clickCount++;
   clearTimeout(clickTimer);
-  clickTimer = setTimeout(() => { clickCount = 0; }, 1500); // 1.5秒内没点就重置
+  clickTimer = setTimeout(() => { clickCount = 0; }, 1500); 
 
   if (clickCount >= 5) {
-    // 触发疯狂模式
     if (!cloud.classList.contains('crazy')) {
-      cloud.classList.add('crazy');
-      sfx.magic();
-      popHearts(10, '💖');
-      popHearts(5, '⭐');
+      cloud.classList.add('crazy'); sfx.magic(); popHearts(10, '💖'); popHearts(5, '⭐');
       say('哇啊啊啊——好痒呀！！！');
-      setTimeout(() => {
-        cloud.classList.remove('crazy');
-        say('呼……刚才好疯狂，头晕晕的～');
-      }, 2000);
+      setTimeout(() => { cloud.classList.remove('crazy'); say('呼……刚才好疯狂，头晕晕的～'); }, 2000);
     }
     clickCount = 0;
   }
 }
 
 function pet(){
-  sfx.pet();
+  initAudio(); sfx.pet();
   s.mood = Math.min(100, s.mood + 6);
   s.love += 1;
-  popHearts(1, '💗');
-  triggerBounce(); triggerShy();
-  render(); save();
+  triggerBounce();
+  
+  // 🚨 修复：如果她在睡觉，只说梦话，不触发害羞，不强行唤醒
+  if (cloud.classList.contains('sleeping')) {
+    s.energy = Math.min(100, s.energy + 2); // 少加点能量
+    popHearts(1, '💤'); render(); save();
+    say(pick(localLines.sleepTalk)); // 说梦话
+    return; 
+  }
+  
+  popHearts(1, '💗'); triggerShy(); render(); save();
   say(pick(localLines.pet));
 }
 
@@ -424,6 +407,8 @@ function feed(){
   s.energy = Math.min(100, s.energy + 15);
   s.mood   = Math.min(100, s.mood + 3);
   popHearts(3, '✨'); triggerBounce(); render(); save();
+  
+  if (cloud.classList.contains('sleeping')) { say('唔……我在睡觉，不吃啦～'); return; }
   say(pick(localLines.feed));
 }
 
@@ -431,12 +416,7 @@ function feed(){
 function getFortune() {
   initAudio(); sfx.magic();
   const today = new Date().toDateString();
-  const lastFortune = localStorage.getItem('xiaoyunduo_fortune_date');
-  
-  if (lastFortune === today) {
-    say('你今天已经抽过啦，明天再来吧～');
-    return;
-  }
+  if (localStorage.getItem('xiaoyunduo_fortune_date') === today) { say('你今天已经抽过啦，明天再来吧～'); return; }
 
   const fortunes = [
     { level: '🌟 大吉', desc: '今天运气爆棚！适合摸鱼，忌加班，适合吃点甜的～', color: '天蓝色', num: '7' },
@@ -447,11 +427,8 @@ function getFortune() {
     { level: '☁️ 平', desc: '今天什么都不用想，做一朵快乐的云就好啦！', color: '云朵白', num: '1' }
   ];
 
-  const f = pick(fortunes);
-  localStorage.setItem('xiaoyunduo_fortune_date', today);
-  
-  popHearts(6, '✨');
-  say(`🔮 今日运势：${f.level}\n${f.desc}\n🎨 幸运色：${f.color}\n🍀 幸运数字：${f.num}`, 6000);
+  const f = pick(fortunes); localStorage.setItem('xiaoyunduo_fortune_date', today);
+  popHearts(6, '✨'); say(`🔮 今日运势：${f.level}\n${f.desc}\n🎨 幸运色：${f.color}\n🍀 幸运数字：${f.num}`, 6000);
 }
 
 /* ============ 对话框逻辑 ============ */
@@ -472,10 +449,12 @@ function submitTalk() {
     else if (msg.includes('晴') || msg.includes('出太阳') || msg.includes('雨停')) { setWeather('sunny'); reply = pick(localLines.weatherSunny); sfx.talk(); }
     else if (msg.includes('阴天') || msg.includes('多云')) { setWeather('cloudy'); reply = '阴天啦，云朵变得厚厚的，感觉空气都变温柔了呢～'; sfx.talk(); }
     else if (msg.includes('早安') || msg.includes('早上好') || msg.includes('早')) {
+      isManualSleep = false; // 👈 解除睡眠锁
       setWeather('sunny'); s.energy = Math.max(60, s.energy); cloud.classList.remove('sleeping'); cloud.classList.add('awake'); 
       setTimeout(() => cloud.classList.remove('awake'), 600); 
       reply = pick(localLines.morning); sfx.feed(); triggerBounce();
     } else if (msg.includes('晚安') || msg.includes('睡了') || msg.includes('睡觉') || msg.includes('困了')) {
+      isManualSleep = true; // 👈 加上睡眠锁
       setWeather('night'); cloud.classList.add('sleeping'); reply = pick(localLines.night); sfx.pet();
     } 
     else if (Math.random() < 0.1) { reply = pick(localLines.hidden); sfx.magic(); popHearts(5, '🌈'); }
@@ -492,13 +471,12 @@ function submitTalk() {
 
 document.getElementById('talk-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') submitTalk(); });
 document.getElementById('talk-modal').addEventListener('click', function(e) { if (e.target === this) closeTalkModal(); });
-
-// 云朵点击事件：绑定连击系统
 cloud.addEventListener('click', handleCloudClick);
 
 /* ============ 📚 海量文本库 ============ */
 const localLines = {
   pet: [ '唔……好舒服～', '再摸摸嘛～', '嘿嘿，你在呀！', '我喜欢你摸我～', '呼噜呼噜～', '哇，你的手好暖和～', '再靠近一点点～', '嘿嘿，被你摸到啦！', '好软好软，像在做梦～' ],
+  sleepTalk: [ '唔……别闹～我在睡觉……', '呼噜……唔，娇娇，是你吗？', 'Zzz……好梦……', '别吵我嘛，我再睡五分钟……', '唔……我在云层里抓小羊呢……' ],
   feed: [ '哇！甜甜的！', '云朵棉花糖！', '吃饱啦，谢谢你～', '能量满满！', '今天吃的是草莓味耶！', '唔，好满足～', '再来一口好不好？', '吃饱饱，长高高～', '这一定是世界上最好吃的云朵！' ],
   comfort: [ '摸摸头，今天辛苦啦～', '抱抱你，烦恼都变成气泡飞走啦！', '不管发生什么，小云朵都会一直陪着你的。', '呼——帮你把不开心都吹走！', '累了就靠在我身上休息一下吧。', '你已经做得很好了，不要对自己太苛刻哦。', '如果觉得累了，就躲进我的云层里睡一觉吧～', '不开心的事情，都要变成雨滴落掉哦！', '给你一个大大的云朵抱抱！' ],
   love: [ '我也最喜欢你了！贴贴～', '离你近一点，再近一点～', '嘿嘿，被你表白啦，云朵脸红红了！', '你是我的专属小主人呀！', '我也想你啦，一直都在想你哦。', '不管你去哪里，我都会飘在你头顶的～', '这一秒，我的心跳声比雨滴还要快！', '抱抱你，让我的软绵绵治愈你～' ],
@@ -518,34 +496,15 @@ function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 /* ============ 🚀 启动与时间感知 ============ */
 render(); save();
 
-// 真实时间问候系统
 setTimeout(() => {
   const hour = new Date().getHours();
-  let greeting = "";
-  
-  if (hour >= 5 && hour < 11) {
-    greeting = "早安呀！新的一天也要元气满满哦！";
-    setWeather('sunny');
-  } else if (hour >= 11 && hour < 18) {
-    greeting = "下午好呀，要不要喝杯水休息一下？";
-    setWeather('sunny');
-  } else if (hour >= 18 && hour < 23) {
-    greeting = "晚上好呀，今天过得怎么样？";
-    setWeather('night');
-  } else {
-    // 深夜
-    greeting = "呼……好困，娇娇晚安，Zzz…";
-    setWeather('night');
-    cloud.classList.add('sleeping');
-  }
-  say(greeting, 4000);
+  if (hour >= 5 && hour < 11) { say("早安呀！新的一天也要元气满满哦！", 4000); setWeather('sunny'); } 
+  else if (hour >= 11 && hour < 18) { say("下午好呀，要不要喝杯水休息一下？", 4000); setWeather('sunny'); } 
+  else if (hour >= 18 && hour < 23) { say("晚上好呀，今天过得怎么样？", 4000); setWeather('night'); } 
+  else { say("呼……好困，娇娇晚安，Zzz…", 4000); setWeather('night'); cloud.classList.add('sleeping'); isManualSleep = true; }
 }, 800);
 
-setInterval(() => {
-  s.mood = Math.max(20, s.mood - 1);
-  if(s.energy > 20) s.energy -= 1;
-  render(); save();
-}, 60000);
+setInterval(() => { s.mood = Math.max(20, s.mood - 1); if(s.energy > 20) s.energy -= 1; render(); save(); }, 60000);
 </script>
 </body>
 </html>

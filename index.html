@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- ☁️ 专属小云朵图标 -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☁️</text></svg>">
-<title>小云朵</title>
+<title>小云朵 · 终极幻想版</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   
-  /* 🌤️ 白天背景（默认） */
+  /* 🌤️ 默认白天背景 */
   body{
     margin:0;min-height:100vh;display:flex;flex-direction:column;
     align-items:center;justify-content:center;
@@ -19,24 +19,23 @@
     transition: background 1.5s ease, color 1.5s ease;
   }
 
+  /* 🎨 换色滤镜（方向四） */
+  body.theme-sunset { background: linear-gradient(180deg,#ff9a9e 0%,#fecfef 100%); }
+  body.theme-sakura { background: linear-gradient(180deg,#fbc2eb 0%,#a6c1ee 100%); }
+  body.theme-aurora { background: linear-gradient(180deg,#0f2027 0%,#203a43 50%,#2c5364 100%); color: #e2e8f0; }
+  body.theme-aurora .track { background: rgba(255,255,255,.2); }
+  body.theme-aurora .btn { background: rgba(255,255,255,.1); color: #f8fafc; border-color: rgba(255,255,255,.2); }
+  body.theme-aurora #name, body.theme-aurora #lv { color: #fff; }
+
   /* ☔ 雨天模式 */
   body.weather-rainy { background: linear-gradient(180deg,#64748b 0%,#94a3b8 100%); color: #e2e8f0; }
   body.weather-rainy #bubble { background: rgba(30,41,59,.95); color: #f8fafc; }
   body.weather-rainy #bubble::after { border-top-color: rgba(30,41,59,.95); }
-  body.weather-rainy .track { background: rgba(255,255,255,.2); }
-  body.weather-rainy .btn { background: rgba(255,255,255,.1); color: #f8fafc; border-color: rgba(255,255,255,.2); }
-  body.weather-rainy .cloud-bg { opacity: 0.3; }
-
-  /* ☁️ 阴天/多云模式 */
-  body.weather-cloudy { background: linear-gradient(180deg,#cbd5e1 0%,#94a3b8 100%); }
 
   /* 🌙 夜晚模式 */
   body.weather-night { background: linear-gradient(180deg,#1e293b 0%,#0f172a 100%); color: #e2e8f0; }
   body.weather-night #bubble { background: rgba(30,41,59,.95); color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); }
   body.weather-night #bubble::after { border-top-color: rgba(30,41,59,.95); }
-  body.weather-night .track { background: rgba(255,255,255,.2); }
-  body.weather-night .btn { background: rgba(255,255,255,.1); color: #f8fafc; border-color: rgba(255,255,255,.2); }
-  body.weather-night .cloud-bg { opacity: 0.1; filter: blur(8px); }
   body.weather-night #name, body.weather-night #lv { color: #fff; }
 
   .night-sky { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 1.5s; z-index: 0; }
@@ -45,10 +44,6 @@
   .star { position: absolute; font-size: 12px; animation: blink 3s infinite; }
 
   #sky-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-  
-  .raindrop { position: absolute; top: -20px; width: 2px; height: 15px; background: rgba(255,255,255,.6); border-radius: 2px; animation: fall linear infinite; }
-  @keyframes fall { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(110vh); opacity: 0.2; } }
-
   .cloud-bg { position: absolute; background: #fff; border-radius: 50px; opacity: 0.8; filter: blur(4px); animation: drift linear infinite; }
   .cloud-bg::before { content: ''; position: absolute; top: -25px; left: 20px; width: 60px; height: 60px; background: #fff; border-radius: 50%; }
   .cloud-bg::after { content: ''; position: absolute; top: -15px; right: 20px; width: 50px; height: 50px; background: #fff; border-radius: 50%; }
@@ -58,14 +53,37 @@
   .c4 { width: 140px; height: 50px; top: 85%; left: -200px; animation-duration: 40s; animation-delay: 2s; opacity: 0.5; filter: blur(5px); }
   @keyframes drift { 0% { transform: translateX(0) translateY(0); } 50% { transform: translateX(50vw) translateY(-10px); } 100% { transform: translateX(120vw) translateY(0); } }
 
+  /* 放空/呼吸模式遮罩（方向二） */
+  #breath-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.5s; z-index: 200;
+  }
+  #breath-overlay.show { opacity: 1; pointer-events: auto; }
+  #breath-circle {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #a5b4fc);
+    box-shadow: 0 0 40px rgba(165, 180, 252, 0.6);
+    transform: scale(1); transition: transform 4s ease-in-out;
+  }
+  #breath-text { color: #fff; font-size: 20px; margin-top: 30px; letter-spacing: 2px; }
+  #breath-close { margin-top: 40px; padding: 10px 24px; border-radius: 99px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: #fff; font-size: 14px; cursor: pointer; }
+
   #name, #lv, #stage, #bars, #actions { position: relative; z-index: 1; }
   #name{font-size:14px;opacity:.75;letter-spacing:2px}
   #lv{font-size:12px;opacity:.55;margin-top:4px}
 
   #stage{position:relative;height:280px;width:100%;display:flex;align-items:center;justify-content:center;margin:10px 0}
-  #cloud-wrapper { display: flex; align-items: center; justify-content: center; width: 150px; height: 90px; transform: scale(1.3); transform-origin: center center; }
-
-  /* ☁️ 小云朵本体 */
+  
+  /* 拖拽容器（方向一） */
+  #cloud-wrapper { 
+    display: flex; align-items: center; justify-content: center; 
+    width: 150px; height: 90px; transform: scale(1.3); transform-origin: center center;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 松手弹回动画 */
+  }
+  #cloud-wrapper.dragging { transition: none; cursor: grabbing; }
+  
   #cloud{ position:relative;width:150px;height:90px; animation:float 4s ease-in-out infinite; transition:filter .4s; cursor:pointer; transform-origin: center bottom; }
   @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
   
@@ -75,6 +93,10 @@
   @keyframes crazyShake { 0% { transform: translateX(0) rotate(0deg); } 25% { transform: translateX(-4px) rotate(-3deg); } 50% { transform: translateX(4px) rotate(3deg); } 75% { transform: translateX(-4px) rotate(-3deg); } 100% { transform: translateX(0) rotate(0deg); } }
   #cloud.crazy { animation: crazyShake 0.3s ease-in-out infinite; }
 
+  /* 双击翻滚（方向一） */
+  @keyframes flip { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+  #cloud.flip { animation: flip 0.8s ease-in-out; }
+
   /* ☁️ 立体云朵材质 */
   .puff{ position:absolute; border-radius:50%; background: radial-gradient(circle at 35% 30%, #ffffff 0%, #f4f9fd 60%, #e2effa 100%); box-shadow: 0 10px 20px rgba(0,0,0,0.08), inset 0 -6px 12px rgba(148, 163, 184, 0.15), inset 0 6px 10px rgba(255, 255, 255, 1); border: 1px solid rgba(255,255,255,0.8); transition:background .4s; }
   .p1{width:90px;height:90px;left:30px;top:0}
@@ -82,11 +104,9 @@
   .p3{width:74px;height:74px;right:0;top:18px}
   .p4{width:110px;height:56px;left:20px;bottom:0;border-radius:40px}
 
-  /* 🎀 配饰系统 */
   #accessory { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-size: 24px; opacity: 0; transition: opacity 0.5s, top 0.5s; z-index: 3; }
   #accessory.show { opacity: 1; top: -45px; }
 
-  /* 表情基础状态 */
   .eye{position:absolute;width:12px;height:14px;background:#334155;border-radius:50%;top:44px;animation:blink 5s infinite; z-index: 2;}
   .eye.l{left:52px} .eye.r{right:52px}
   @keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
@@ -98,28 +118,16 @@
   @keyframes talkAnim { 0%, 100% { transform: translateX(-50%) scaleY(1); } 50% { transform: translateX(-50%) scaleY(0.6); } }
   #cloud.talking .mouth { animation: talkAnim 0.6s ease-in-out infinite; }
 
-  /* 💤 睡觉（闭眼的小月牙）- 加强优先级保护 */
-  #cloud.sleeping .eye { 
-    height: 8px !important; 
-    width: 14px !important; 
-    background: transparent !important; 
-    border-bottom: 3px solid #334155 !important; 
-    border-radius: 0 0 14px 14px !important; 
-    top: 45px !important; 
-    animation: none !important; 
-    transform: none !important;
-  }
+  #cloud.sleeping .eye { height: 8px !important; width: 14px !important; background: transparent !important; border-bottom: 3px solid #334155 !important; border-radius: 0 0 14px 14px !important; top: 45px !important; animation: none !important; transform: none !important; }
   #cloud.sleeping .mouth { width: 10px; height: 10px; border-radius: 50%; border-bottom: 2px solid #334155; top: 66px; }
   #cloud.sleeping .blush { opacity: 0.4; }
   
   @keyframes wakeUp { 0% { transform: scaleY(0.1); } 50% { transform: scaleY(1.2); } 100% { transform: scaleY(1); } }
   #cloud.awake .eye { animation: wakeUp 0.6s ease-out; }
 
-  /* 害羞 */
   #cloud.shy .eye { animation: none; transform: scaleY(0.6) translateY(5px); }
   #cloud.shy .blush { opacity: 1; background: #fb7185; transform: scale(1.3); }
 
-  /* 好奇 */
   @keyframes lookAround { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
   #cloud.looking .eye { animation: lookAround 2s ease-in-out infinite; }
   #cloud.looking .eye.l { left: 48px; } #cloud.looking .eye.r { right: 48px; }
@@ -128,12 +136,14 @@
   @keyframes floatZ { 0% { opacity: 0; transform: translateY(0) scale(0.8); } 50% { opacity: 1; transform: translateY(-20px) scale(1.1); } 100% { opacity: 0; transform: translateY(-40px) scale(0.8); } }
   #cloud.sleeping .zzz { opacity: 1; }
 
-  /* 气泡 */
+  /* 接星星游戏（方向三） */
+  .falling-star { position: absolute; font-size: 24px; pointer-events: auto; cursor: pointer; user-select: none; z-index: 5; animation: starFall linear forwards; }
+  @keyframes starFall { 0% { transform: translateY(-50px) rotate(0deg); } 100% { transform: translateY(300px) rotate(360deg); opacity: 0; } }
+
   #bubble{ position:absolute;top:6px;left:50%;transform:translateX(-50%); background:rgba(255,255,255,.95);color:#334155; padding:10px 16px;border-radius:16px;font-size:14px;line-height:1.5; max-width:260px;text-align:center;opacity:0;transition:opacity .35s; box-shadow:0 8px 24px rgba(0,0,0,.1); z-index: 10; }
   #bubble.show{opacity:1}
   #bubble::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:rgba(255,255,255,.95);border-bottom:none}
 
-  /* 状态条 */
   #bars{display:flex;gap:18px;margin:8px 0 4px;font-size:12px;opacity:.8}
   .bar{text-align:center}
   .track{width:70px;height:6px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;margin-top:5px}
@@ -142,23 +152,21 @@
   #energyFill{background:linear-gradient(90deg,#38bdf8,#22d3ee)}
   #loveFill{background:linear-gradient(90deg,#facc15,#fb923c)}
 
-  /* 按钮 */
-  #actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:18px;padding:0 20px;}
-  .btn{ padding:12px 20px;border-radius:999px;border:1px solid rgba(0,0,0,.1); background:rgba(255,255,255,.7);color:#334155;font-size:14px;cursor:pointer; transition:.2s;box-shadow: 0 4px 12px rgba(0,0,0,.05); backdrop-filter: blur(4px); }
+  #actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px;padding:0 15px;}
+  .btn{ padding:10px 16px;border-radius:999px;border:1px solid rgba(0,0,0,.1); background:rgba(255,255,255,.7);color:#334155;font-size:13px;cursor:pointer; transition:.2s;box-shadow: 0 4px 12px rgba(0,0,0,.05); backdrop-filter: blur(4px); }
   .btn:active{transform:scale(.94);background:rgba(255,255,255,.95)}
 
-  /* 飘心 */
   .heart{position:absolute;font-size:18px;pointer-events:none;animation:rise 1.2s ease-out forwards}
   @keyframes rise{ 0%{opacity:1;transform:translateY(0) scale(.6)} 100%{opacity:0;transform:translateY(-90px) scale(1.3)} }
 
-  /* 自定义对话框 */
+  /* 日记与设置弹窗 */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.2); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100; }
   .modal-overlay.show { opacity: 1; pointer-events: auto; }
   .modal-content { background: rgba(255,255,255,0.95); border-radius: 24px; padding: 24px; width: 85%; max-width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); text-align: center; border: 1px solid rgba(255,255,255,0.8); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   .modal-overlay.show .modal-content { transform: scale(1); }
   .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #334155; }
-  #talk-input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.8); font-size: 14px; color: #334155; outline: none; transition: border 0.2s, background 0.2s; box-sizing: border-box; }
-  #talk-input:focus { border-color: #93c5fd; background: #fff; box-shadow: 0 0 0 4px rgba(147,197,253,0.2); }
+  #talk-input, #name-input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.8); font-size: 14px; color: #334155; outline: none; transition: border 0.2s, background 0.2s; box-sizing: border-box; }
+  #talk-input:focus, #name-input:focus { border-color: #93c5fd; background: #fff; box-shadow: 0 0 0 4px rgba(147,197,253,0.2); }
   .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
   .modal-btn { flex: 1; padding: 12px; border-radius: 14px; font-size: 14px; border: none; cursor: pointer; font-weight: 600; transition: transform 0.1s, background 0.2s; }
   .modal-btn:active { transform: scale(0.96); }
@@ -166,6 +174,10 @@
   .modal-btn.cancel:hover { background: #e2e8f0; }
   .modal-btn.confirm { background: #60a5fa; color: #fff; box-shadow: 0 4px 12px rgba(96,165,250,0.4); }
   .modal-btn.confirm:hover { background: #3b82f6; }
+  
+  .diary-options { display: flex; justify-content: space-around; margin-top: 20px; }
+  .diary-opt { font-size: 30px; cursor: pointer; transition: transform 0.2s; }
+  .diary-opt:active { transform: scale(1.3); }
 </style>
 </head>
 <body>
@@ -219,9 +231,14 @@
     <button class="btn" onclick="pet()">摸摸</button>
     <button class="btn" onclick="feed()">喂云</button>
     <button class="btn" onclick="talk()">说话</button>
-    <button class="btn" onclick="getFortune()">今日运势 🔮</button>
+    <button class="btn" onclick="startBreath()">放空 🧘</button>
+    <button class="btn" onclick="openDiary()">日记 📝</button>
+    <button class="btn" onclick="startStarGame()">接星星 🌟</button>
+    <button class="btn" onclick="changeTheme()">换肤 🎨</button>
+    <button class="btn" onclick="openNameModal()">改名 🏷️</button>
   </div>
 
+  <!-- 对话弹窗 -->
   <div id="talk-modal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-title">想对小云朵说什么？</div>
@@ -233,14 +250,51 @@
     </div>
   </div>
 
+  <!-- 心情日记弹窗 -->
+  <div id="diary-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">今天心情怎么样呀？</div>
+      <div class="diary-options">
+        <div class="diary-opt" onclick="submitDiary('happy')">😊<br><span style="font-size:12px">开心</span></div>
+        <div class="diary-opt" onclick="submitDiary('tired')">😫<br><span style="font-size:12px">好累</span></div>
+        <div class="diary-opt" onclick="submitDiary('sad')">😢<br><span style="font-size:12px">委屈</span></div>
+        <div class="diary-opt" onclick="submitDiary('angry')">😤<br><span style="font-size:12px">生气</span></div>
+      </div>
+      <div class="modal-buttons" style="margin-top:20px;">
+        <button class="modal-btn cancel" onclick="closeDiary()">下次再说</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 改名弹窗 -->
+  <div id="name-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">给小云朵起个名字吧</div>
+      <input type="text" id="name-input" placeholder="请输入新名字..." maxlength="10" autocomplete="off">
+      <div class="modal-buttons">
+        <button class="modal-btn cancel" onclick="closeNameModal()">取消</button>
+        <button class="modal-btn confirm" onclick="submitName()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 放空呼吸模式 -->
+  <div id="breath-overlay">
+    <div id="breath-circle"></div>
+    <div id="breath-text">准备吸气……</div>
+    <button id="breath-close" onclick="stopBreath()">结束放空</button>
+  </div>
+
 <script>
 /* ================================================================
-   ★★★ 小云朵 · 终极治愈完全体 ★★★
+   ★★★ 小云朵 · 终极幻想版 ★★★
    ================================================================ */
 
 const KEY = 'xiaoyunduo';
 let s = load();
-let isManualSleep = false; // 👈 新增：手动睡眠锁，防止被摸摸强行唤醒
+let isManualSleep = false;
+let customName = localStorage.getItem('xiaoyunduo_name') || '小云朵';
+let currentTheme = localStorage.getItem('xiaoyunduo_theme') || 'default';
 
 function load(){
   const raw = localStorage.getItem(KEY);
@@ -255,6 +309,7 @@ function load(){
 function save(){ s.last = Date.now(); localStorage.setItem(KEY, JSON.stringify(s)); }
 
 const cloud  = document.getElementById('cloud');
+const wrapper = document.getElementById('cloud-wrapper');
 const bubble = document.getElementById('bubble');
 
 /* ============ 🔊 声音合成引擎 ============ */
@@ -280,14 +335,39 @@ const sfx = {
   magic: () => { [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => playTone(f, 'sine', 0.4, 0.1, i * 0.1)); }
 };
 
-/* ============ 🌤️ 天气系统 ============ */
+/* ============ 🎵 白噪音（方向二） ============ */
+let rainAudio = null;
+function startRainSound() {
+  if (!audioCtx || rainAudio) return;
+  const bufferSize = 2 * audioCtx.sampleRate;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer; noise.loop = true;
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass'; filter.frequency.value = 800;
+  const gain = audioCtx.createGain(); gain.gain.value = 0.05;
+  noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  noise.start();
+  rainAudio = { noise, gain };
+}
+function stopRainSound() {
+  if (rainAudio) {
+    rainAudio.noise.stop();
+    rainAudio = null;
+  }
+}
+
+/* ============ 🌤️ 天气与主题系统 ============ */
 function setWeather(weather) {
   const body = document.body;
   const rainContainer = document.getElementById('rain-container');
-  body.classList.remove('weather-rainy', 'weather-cloudy', 'weather-night');
+  body.classList.remove('weather-rainy', 'weather-night');
 
   if (weather === 'rainy') {
     body.classList.add('weather-rainy');
+    startRainSound();
     if (rainContainer.children.length === 0) {
       for (let i = 0; i < 40; i++) {
         const drop = document.createElement('div');
@@ -297,12 +377,23 @@ function setWeather(weather) {
         rainContainer.appendChild(drop);
       }
     }
-  } else if (weather === 'cloudy') {
-    body.classList.add('weather-cloudy'); rainContainer.innerHTML = '';
-  } else if (weather === 'night') {
-    body.classList.add('weather-night'); rainContainer.innerHTML = '';
-  } else { rainContainer.innerHTML = ''; }
+  } else {
+    stopRainSound();
+    rainContainer.innerHTML = '';
+    if (weather === 'night') body.classList.add('weather-night');
+  }
   updateAccessory();
+}
+
+function changeTheme() {
+  const themes = ['default', 'theme-sunset', 'theme-sakura', 'theme-aurora'];
+  let idx = themes.indexOf(currentTheme);
+  idx = (idx + 1) % themes.length;
+  currentTheme = themes[idx];
+  document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
+  if (currentTheme !== 'default') document.body.classList.add(currentTheme);
+  localStorage.setItem('xiaoyunduo_theme', currentTheme);
+  say(`换上了新皮肤，好看吗？`, 2000);
 }
 
 /* ============ 🎀 配饰系统 ============ */
@@ -323,15 +414,14 @@ function render(){
   document.getElementById('moodFill').style.width   = s.mood + '%';
   document.getElementById('energyFill').style.width = s.energy + '%';
   document.getElementById('loveFill').style.width   = Math.min(100, s.love % 100) + '%';
+  document.getElementById('name').textContent = customName;
 
   const titles = ['刚认识','有点熟','好朋友','很黏你','离不开你'];
   const lv = Math.min(5, Math.floor(s.love / 20) + 1);
   document.getElementById('lv').textContent = `Lv.${lv} · ${titles[lv-1]}`;
 
-  // 🚨 修复：如果手动说了晚安，不能被能量值强制唤醒
-  if (isManualSleep) {
-    cloud.classList.add('sleeping');
-  } else {
+  if (isManualSleep) { cloud.classList.add('sleeping'); } 
+  else {
     if (s.energy < 15) { cloud.classList.add('sleeping'); } 
     else if (s.energy >= 30) { cloud.classList.remove('sleeping'); }
   }
@@ -358,16 +448,13 @@ function popHearts(n = 3, emoji = '☁️'){
   }
 }
 
-/* ============ 👆 连击小游戏 ============ */
-let clickCount = 0;
-let clickTimer = null;
+/* ============ 👆 连击与拖拽（方向一） ============ */
+let clickCount = 0, clickTimer = null;
+let isDragging = false, startX, startY, currentX = 0, currentY = 0;
 
 function handleCloudClick() {
   initAudio(); 
-  
-  // 🚨 修复：睡觉时不可连击，也不触发唤醒
   if (cloud.classList.contains('sleeping')) { pet(); return; }
-  
   pet(); 
   clickCount++;
   clearTimeout(clickTimer);
@@ -383,20 +470,59 @@ function handleCloudClick() {
   }
 }
 
+// 拖拽逻辑
+wrapper.addEventListener('mousedown', startDrag);
+wrapper.addEventListener('touchstart', startDrag, {passive: false});
+document.addEventListener('mousemove', drag);
+document.addEventListener('touchmove', drag, {passive: false});
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+
+function startDrag(e) {
+  if (cloud.classList.contains('sleeping')) return;
+  isDragging = true;
+  wrapper.classList.add('dragging');
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  startX = clientX - currentX;
+  startY = clientY - currentY;
+  e.preventDefault();
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  currentX = clientX - startX;
+  currentY = clientY - startY;
+  wrapper.style.transform = `scale(1.3) translate(${currentX}px, ${currentY}px)`;
+}
+
+function endDrag() {
+  if (!isDragging) return;
+  isDragging = false;
+  wrapper.classList.remove('dragging');
+  currentX = 0; currentY = 0;
+  wrapper.style.transform = 'scale(1.3) translate(0px, 0px)'; // 弹回原位
+  initAudio(); sfx.pet();
+  say('哎呀，差点飞走了！');
+}
+
+// 双击翻滚
+cloud.addEventListener('dblclick', () => {
+  if (cloud.classList.contains('sleeping')) return;
+  cloud.classList.add('flip');
+  sfx.magic();
+  setTimeout(() => cloud.classList.remove('flip'), 800);
+});
+
 function pet(){
   initAudio(); sfx.pet();
-  s.mood = Math.min(100, s.mood + 6);
-  s.love += 1;
-  triggerBounce();
-  
-  // 🚨 修复：如果她在睡觉，只说梦话，不触发害羞，不强行唤醒
+  s.mood = Math.min(100, s.mood + 6); s.love += 1; triggerBounce();
   if (cloud.classList.contains('sleeping')) {
-    s.energy = Math.min(100, s.energy + 2); // 少加点能量
-    popHearts(1, '💤'); render(); save();
-    say(pick(localLines.sleepTalk)); // 说梦话
-    return; 
+    s.energy = Math.min(100, s.energy + 2); popHearts(1, '💤'); render(); save();
+    say(pick(localLines.sleepTalk)); return; 
   }
-  
   popHearts(1, '💗'); triggerShy(); render(); save();
   say(pick(localLines.pet));
 }
@@ -404,35 +530,115 @@ function pet(){
 function feed(){
   initAudio(); sfx.feed();
   if(s.energy >= 95){ say('我还不饿呢～'); return; }
-  s.energy = Math.min(100, s.energy + 15);
-  s.mood   = Math.min(100, s.mood + 3);
+  s.energy = Math.min(100, s.energy + 15); s.mood = Math.min(100, s.mood + 3);
   popHearts(3, '✨'); triggerBounce(); render(); save();
-  
   if (cloud.classList.contains('sleeping')) { say('唔……我在睡觉，不吃啦～'); return; }
   say(pick(localLines.feed));
 }
 
-/* ============ 🔮 每日运势 ============ */
-function getFortune() {
-  initAudio(); sfx.magic();
+/* ============ 🧘 放空呼吸模式（方向二） ============ */
+let breathInterval = null;
+function startBreath() {
+  initAudio();
+  document.getElementById('breath-overlay').classList.add('show');
+  const circle = document.getElementById('breath-circle');
+  const text = document.getElementById('breath-text');
+  let phase = 0;
+  const cycle = ['吸气……', '屏住……', '呼气……', '屏住……'];
+  
+  circle.style.transform = 'scale(1)';
+  text.textContent = cycle[0];
+  circle.style.transition = 'transform 4s ease-in-out';
+  
+  breathInterval = setInterval(() => {
+    phase = (phase + 1) % 4;
+    text.textContent = cycle[phase];
+    if (phase === 0) circle.style.transform = 'scale(1.5)';
+    else if (phase === 2) circle.style.transform = 'scale(1)';
+  }, 4000);
+}
+function stopBreath() {
+  clearInterval(breathInterval);
+  document.getElementById('breath-overlay').classList.remove('show');
+  say('感觉好点了吗？');
+}
+
+/* ============ 📝 心情日记（方向四） ============ */
+function openDiary() {
+  initAudio();
   const today = new Date().toDateString();
-  if (localStorage.getItem('xiaoyunduo_fortune_date') === today) { say('你今天已经抽过啦，明天再来吧～'); return; }
+  const saved = localStorage.getItem('xiaoyunduo_diary_' + today);
+  if (saved) { say(`今天你已经记过啦：${saved}`); return; }
+  document.getElementById('diary-modal').classList.add('show');
+}
+function closeDiary() { document.getElementById('diary-modal').classList.remove('show'); }
+function submitDiary(mood) {
+  closeDiary();
+  const today = new Date().toDateString();
+  const moodMap = { happy: '😊 开心', tired: '😫 好累', sad: '😢 委屈', angry: '😤 生气' };
+  localStorage.setItem('xiaoyunduo_diary_' + today, moodMap[mood]);
+  
+  let reply = '';
+  if (mood === 'happy') reply = '哇！你开心我就开心，把这份快乐存起来啦～';
+  else if (mood === 'tired') reply = '辛苦啦，快靠在我身上休息一下，我给你充充电。';
+  else if (mood === 'sad') reply = '抱抱你，把委屈都变成云朵飘走吧。';
+  else if (mood === 'angry') reply = '哼！谁惹你生气了，我帮你把他变成乌云！';
+  
+  say(reply, 4000); popHearts(4, '💗');
+}
 
-  const fortunes = [
-    { level: '🌟 大吉', desc: '今天运气爆棚！适合摸鱼，忌加班，适合吃点甜的～', color: '天蓝色', num: '7' },
-    { level: '✨ 中吉', desc: '今天会有小惊喜出现哦，留意身边的小确幸，记得多喝水！', color: '粉红色', num: '3' },
-    { level: '🌤️ 小吉', desc: '平淡又安稳的一天，适合发呆和晒太阳，摸鱼大成功！', color: '奶黄色', num: '5' },
-    { level: '🌧️ 末吉', desc: '今天可能会有点小忙，但没关系，下班后一切都会好起来的！', color: '浅灰色', num: '2' },
-    { level: '🌈 吉', desc: '今天适合和朋友聊聊天，或者听一首好听的歌，心情会变好哦～', color: '薄荷绿', num: '9' },
-    { level: '☁️ 平', desc: '今天什么都不用想，做一朵快乐的云就好啦！', color: '云朵白', num: '1' }
-  ];
+/* ============ 🌟 接星星小游戏（方向三） ============ */
+let starGameInterval = null;
+let starScore = 0;
+function startStarGame() {
+  if (starGameInterval) return;
+  initAudio(); starScore = 0;
+  say('游戏开始！快点击掉下来的星星！', 2000);
+  starGameInterval = setInterval(() => {
+    const star = document.createElement('div');
+    star.className = 'falling-star';
+    star.textContent = pick(['⭐', '🌟', '✨', '💫']);
+    star.style.left = (Math.random() * 80 + 10) + '%';
+    star.style.top = '-30px';
+    star.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    document.getElementById('stage').appendChild(star);
+    
+    star.addEventListener('click', () => {
+      starScore++; sfx.pet(); popHearts(2, '✨');
+      star.remove();
+    });
+    setTimeout(() => star.remove(), 3000);
+  }, 600);
 
-  const f = pick(fortunes); localStorage.setItem('xiaoyunduo_fortune_date', today);
-  popHearts(6, '✨'); say(`🔮 今日运势：${f.level}\n${f.desc}\n🎨 幸运色：${f.color}\n🍀 幸运数字：${f.num}`, 6000);
+  setTimeout(() => {
+    clearInterval(starGameInterval);
+    starGameInterval = null;
+    s.love += starScore; s.mood = Math.min(100, s.mood + starScore);
+    render(); save();
+    say(`游戏结束！你接到了 ${starScore} 颗星星，好厉害！`, 4000);
+  }, 10000); // 10秒游戏
+}
+
+/* ============ 🏷️ 改名（方向四） ============ */
+function openNameModal() {
+  initAudio();
+  document.getElementById('name-input').value = customName;
+  document.getElementById('name-modal').classList.add('show');
+  setTimeout(() => document.getElementById('name-input').focus(), 100);
+}
+function closeNameModal() { document.getElementById('name-modal').classList.remove('show'); }
+function submitName() {
+  const newName = document.getElementById('name-input').value.trim();
+  if (newName) {
+    customName = newName;
+    localStorage.setItem('xiaoyunduo_name', customName);
+    render(); say(`好耶！以后我就叫「${customName}」啦！`, 4000);
+  }
+  closeNameModal();
 }
 
 /* ============ 对话框逻辑 ============ */
-function talk(){ initAudio(); const modal = document.getElementById('talk-modal'); modal.classList.add('show'); setTimeout(() => document.getElementById('talk-input').focus(), 100); }
+function talk(){ initAudio(); document.getElementById('talk-modal').classList.add('show'); setTimeout(() => document.getElementById('talk-input').focus(), 100); }
 function closeTalkModal() { document.getElementById('talk-modal').classList.remove('show'); document.getElementById('talk-input').value = ''; }
 
 function submitTalk() {
@@ -442,20 +648,16 @@ function submitTalk() {
 
   setTimeout(() => {
     let reply = "";
-    
-    if (msg.includes('你是谁') || msg.includes('叫什么')) { reply = pick(localLines.identity); sfx.talk(); }
+    if (msg.includes('你是谁') || msg.includes('叫什么')) { reply = `我是${customName}呀！`; sfx.talk(); }
     else if (msg.includes('可爱') || msg.includes('好棒') || msg.includes('喜欢你')) { reply = pick(localLines.praise); sfx.talk(); }
     else if (msg.includes('雨') || msg.includes('变天')) { setWeather('rainy'); reply = pick(localLines.weatherRain); sfx.talk(); }
     else if (msg.includes('晴') || msg.includes('出太阳') || msg.includes('雨停')) { setWeather('sunny'); reply = pick(localLines.weatherSunny); sfx.talk(); }
-    else if (msg.includes('阴天') || msg.includes('多云')) { setWeather('cloudy'); reply = '阴天啦，云朵变得厚厚的，感觉空气都变温柔了呢～'; sfx.talk(); }
     else if (msg.includes('早安') || msg.includes('早上好') || msg.includes('早')) {
-      isManualSleep = false; // 👈 解除睡眠锁
-      setWeather('sunny'); s.energy = Math.max(60, s.energy); cloud.classList.remove('sleeping'); cloud.classList.add('awake'); 
+      isManualSleep = false; setWeather('sunny'); s.energy = Math.max(60, s.energy); cloud.classList.remove('sleeping'); cloud.classList.add('awake'); 
       setTimeout(() => cloud.classList.remove('awake'), 600); 
       reply = pick(localLines.morning); sfx.feed(); triggerBounce();
     } else if (msg.includes('晚安') || msg.includes('睡了') || msg.includes('睡觉') || msg.includes('困了')) {
-      isManualSleep = true; // 👈 加上睡眠锁
-      setWeather('night'); cloud.classList.add('sleeping'); reply = pick(localLines.night); sfx.pet();
+      isManualSleep = true; setWeather('night'); cloud.classList.add('sleeping'); reply = pick(localLines.night); sfx.pet();
     } 
     else if (Math.random() < 0.1) { reply = pick(localLines.hidden); sfx.magic(); popHearts(5, '🌈'); }
     else if (msg.includes('累') || msg.includes('烦') || msg.includes('难过')) { reply = pick(localLines.comfort); sfx.talk(); }
@@ -471,30 +673,32 @@ function submitTalk() {
 
 document.getElementById('talk-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') submitTalk(); });
 document.getElementById('talk-modal').addEventListener('click', function(e) { if (e.target === this) closeTalkModal(); });
+document.getElementById('name-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') submitName(); });
+document.getElementById('name-modal').addEventListener('click', function(e) { if (e.target === this) closeNameModal(); });
 cloud.addEventListener('click', handleCloudClick);
 
 /* ============ 📚 海量文本库 ============ */
 const localLines = {
   pet: [ '唔……好舒服～', '再摸摸嘛～', '嘿嘿，你在呀！', '我喜欢你摸我～', '呼噜呼噜～', '哇，你的手好暖和～', '再靠近一点点～', '嘿嘿，被你摸到啦！', '好软好软，像在做梦～' ],
   sleepTalk: [ '唔……别闹～我在睡觉……', '呼噜……唔，娇娇，是你吗？', 'Zzz……好梦……', '别吵我嘛，我再睡五分钟……', '唔……我在云层里抓小羊呢……' ],
-  feed: [ '哇！甜甜的！', '云朵棉花糖！', '吃饱啦，谢谢你～', '能量满满！', '今天吃的是草莓味耶！', '唔，好满足～', '再来一口好不好？', '吃饱饱，长高高～', '这一定是世界上最好吃的云朵！' ],
-  comfort: [ '摸摸头，今天辛苦啦～', '抱抱你，烦恼都变成气泡飞走啦！', '不管发生什么，小云朵都会一直陪着你的。', '呼——帮你把不开心都吹走！', '累了就靠在我身上休息一下吧。', '你已经做得很好了，不要对自己太苛刻哦。', '如果觉得累了，就躲进我的云层里睡一觉吧～', '不开心的事情，都要变成雨滴落掉哦！', '给你一个大大的云朵抱抱！' ],
-  love: [ '我也最喜欢你了！贴贴～', '离你近一点，再近一点～', '嘿嘿，被你表白啦，云朵脸红红了！', '你是我的专属小主人呀！', '我也想你啦，一直都在想你哦。', '不管你去哪里，我都会飘在你头顶的～', '这一秒，我的心跳声比雨滴还要快！', '抱抱你，让我的软绵绵治愈你～' ],
-  hi: [ '你来啦！我一直在这儿等你～', '嗨嗨！今天过得怎么样？', '不管怎样，今天也要开心哦！', '我刚刚在云层里打了个滚，你就来了！', '哇，你终于出现啦～', '嘿嘿，是不是想我啦？', '叮咚！你的小云朵已上线～' ],
-  normal: [ '唔……我刚刚在云层里打了个滚～', '嘿嘿，被你抓到我发呆啦！', '今天的小云朵是棉花糖味的哦！', '呼……刚睡醒，你在叫我吗？', '我猜你现在肯定在想我！', '不管你理不理我，我都会在这里飘来飘去～', '如果心情有颜色，你今天是什么颜色的呀？', '要不要一起发个呆？就一小会儿～', '我刚才偷偷打了个哈欠，没被发现吧？', '你猜猜，我的云朵里藏着什么秘密？', '今天的天空好蓝呀，像你一样～', '我刚刚在偷偷看你哦！', '你笑了吗？你笑了我就开心啦！' ],
-  identity: [ '我是娇娇专属的小云朵呀！', '我是住在你手机里的守护精灵～', '我是你的专属解压小宠物，小云朵！', '我是由软绵绵的云朵和好多好多对你的喜欢组成的！', '我是一朵只属于你的小云朵，别人都不知道哦～' ],
-  praise: [ '嘿嘿，被你夸得都不好意思啦！', '我是不是世界上最可爱的云？', '哇！你夸我啦，我要飘到天上去了！', '被你夸奖，我的云朵边缘都变粉红色了～', '哼，我本来就很可爱嘛！（傲娇）', '谢谢你！你也是我最喜欢的小主人！' ],
-  weatherRain: [ '下雨啦，哗啦啦，我们躲在云里听雨吧～', '滴答滴答，你听到雨的声音了吗？', '下雨天，最适合窝在一起发呆啦～', '雨点落在我的身上，凉丝丝的～', '我们一起听雨声吧，这声音好治愈。', '虽然外面在下雨，但我的云层里很温暖哦！' ],
-  weatherSunny: [ '雨停啦，太阳出来咯，心情也晴朗起来～', '哇，阳光好暖和，晒得我软绵绵的～', '天晴啦！我们一起晒太阳吧！', '乌云飞走啦，今天也是充满希望的一天！', '太阳公公出来啦，我身上都发光了呢！' ],
-  morning: [ '早安呀！我醒啦，新的一天也要元气满满哦！', '早呀！今天也是被娇娇叫醒的一天～', '叮铃铃～小云朵早安播报开始啦！', '早上好！我昨晚梦到你了呢～', '新的一天，小云朵依然爱你哦！' ],
-  night: [ '呼……好困，娇娇晚安，Zzz…', '晚安娇娇，梦里也要有云朵哦～', '盖好被子，小云朵要给你关灯啦～', '今天辛苦啦，好好睡一觉吧，我守着你～', '晚安，明天见，我会在梦里变成小羊～' ],
-  hidden: [ '✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！', '💎【稀有款】偷偷告诉你，我今天其实是草莓味的！', '🌟【传说款】其实……我是老天爷派来专门陪你的小云朵！', '🎉【彩蛋】哔哔——小云朵卡壳了，并趁机卖了个萌！', '🌈【限定款】今天的小云朵光环全开，为你赶走所有不开心！', '👑【王者款】娇娇今天运气爆棚！小云朵给你颁发\'最佳主人\'奖！', '🌙【梦幻款】我刚刚偷偷去月亮上给你摘了一颗星星，藏在我的云朵里啦！' ]
+  feed: [ '哇！甜甜的！', '云朵棉花糖！', '吃饱啦，谢谢你～', '能量满满！', '今天吃的是草莓味耶！', '唔，好满足～', '再来一口好不好？', '吃饱饱，长高高～' ],
+  comfort: [ '摸摸头，今天辛苦啦～', '抱抱你，烦恼都变成气泡飞走啦！', '不管发生什么，小云朵都会一直陪着你的。', '呼——帮你把不开心都吹走！', '累了就靠在我身上休息一下吧。', '你已经做得很好了，不要对自己太苛刻哦。' ],
+  love: [ '我也最喜欢你了！贴贴～', '离你近一点，再近一点～', '嘿嘿，被你表白啦，云朵脸红红了！', '你是我的专属小主人呀！', '我也想你啦，一直都在想你哦。' ],
+  hi: [ '你来啦！我一直在这儿等你～', '嗨嗨！今天过得怎么样？', '不管怎样，今天也要开心哦！', '我刚刚在云层里打了个滚，你就来了！', '哇，你终于出现啦～' ],
+  normal: [ '唔……我刚刚在云层里打了个滚～', '嘿嘿，被你抓到我发呆啦！', '今天的小云朵是棉花糖味的哦！', '呼……刚睡醒，你在叫我吗？', '我猜你现在肯定在想我！', '如果心情有颜色，你今天是什么颜色的呀？' ],
+  praise: [ '嘿嘿，被你夸得都不好意思啦！', '我是不是世界上最可爱的云？', '哇！你夸我啦，我要飘到天上去了！', '被你夸奖，我的云朵边缘都变粉红色了～' ],
+  weatherRain: [ '下雨啦，哗啦啦，我们躲在云里听雨吧～', '滴答滴答，你听到雨的声音了吗？', '下雨天，最适合窝在一起发呆啦～', '雨点落在我的身上，凉丝丝的～' ],
+  weatherSunny: [ '雨停啦，太阳出来咯，心情也晴朗起来～', '哇，阳光好暖和，晒得我软绵绵的～', '天晴啦！我们一起晒太阳吧！' ],
+  morning: [ '早安呀！我醒啦，新的一天也要元气满满哦！', '早呀！今天也是被娇娇叫醒的一天～', '早上好！我昨晚梦到你了呢～' ],
+  night: [ '呼……好困，娇娇晚安，Zzz…', '晚安娇娇，梦里也要有云朵哦～', '盖好被子，小云朵要给你关灯啦～' ],
+  hidden: [ '✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！', '💎【稀有款】偷偷告诉你，我今天其实是草莓味的！', '🌟【传说款】其实……我是老天爷派来专门陪你的小云朵！', '🌈【限定款】今天的小云朵光环全开，为你赶走所有不开心！' ]
 };
 
 function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 
 /* ============ 🚀 启动与时间感知 ============ */
 render(); save();
+if (currentTheme !== 'default') document.body.classList.add(currentTheme);
 
 setTimeout(() => {
   const hour = new Date().getHours();

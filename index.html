@@ -174,10 +174,10 @@
 
 <script>
 /* ================================================================
-   ★★★ 配置区：已经换成了 Vercel 代理地址！ ★★★
+   ★★★ 配置区：已经换成了 Codex API ★★★
    ================================================================ */
-const API_URL = 'https://vercel-api-proxy-ten-kappa.vercel.app/https/coze.nankai.edu.cn/api/proxy/api/v1';
-const API_KEY = 'db31mjl4shhas0akskj0';
+const API_URL = 'https://api.openai.com/v1/chat/completions';
+const API_KEY = 'sk-6d7cfb887431419bb85f3f1ebd3db20a';
 const KB_API  = '';   
 const KB_ID   = '';   
 /* ================================================================ */
@@ -293,8 +293,12 @@ async function askAgent(input, isChat = false){
           'Authorization': 'Bearer ' + API_KEY
         },
         body: JSON.stringify({
-          message: input,
-          state: { mood: s.mood, energy: s.energy, love: s.love }
+        model: "gpt-5.3-codex", // 这里填 Codex 的模型名
+  messages: [
+    { role: "system", content: "你是小云朵..." },
+    { role: "user", content: input }
+  ],
+  temperature: 0.8
         })
       });
       if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>小云朵</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;min-height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#0f172a,#1e293b 60%,#334155);
+    font-family:system-ui,-apple-system,sans-serif;color:#fff;
+    user-select:none;overflow:hidden;
+  }
+  #name{font-size:14px;opacity:.6;letter-spacing:2px}
+  #lv{font-size:12px;opacity:.45;margin-top:4px}
+
+  /* 云朵舞台 */
+  #stage{position:relative;height:280px;width:100%;
+    display:flex;align-items:center;justify-content:center;margin:10px 0}
+
+  #cloud{
+    position:relative;width:150px;height:90px;
+    animation:float 4s ease-in-out infinite;
+    transition:filter .4s, transform .3s;
+    cursor:pointer;
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-14px)}
+  }
+  .puff{position:absolute;background:#fff;border-radius:50%;
+    box-shadow:0 10px 30px rgba(148,163,184,.35);
+    transition:background .4s}
+  .p1{width:90px;height:90px;left:30px;top:0}
+  .p2{width:66px;height:66px;left:0;top:24px}
+  .p3{width:74px;height:74px;right:0;top:18px}
+  .p4{width:110px;height:56px;left:20px;bottom:0;border-radius:40px}
+
+  /* 表情 */
+  .eye{position:absolute;width:12px;height:14px;background:#334155;
+    border-radius:50%;top:44px;animation:blink 5s infinite}
+  .eye.l{left:52px}
+  .eye.r{right:52px}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+  .blush{position:absolute;width:18px;height:10px;border-radius:50%;
+    background:#fda4af;opacity:.55;top:62px;transition:opacity .4s}
+  .blush.l{left:36px}
+  .blush.r{right:36px}
+  .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
+    transform:translateX(-50%);border-bottom:3px solid #334155;
+    border-radius:0 0 16px 16px;transition:all .3s}
+
+  /* 低状态的样子 */
+  #cloud.sad .puff{background:#cbd5e1}
+  #cloud.sad{filter:saturate(.5)}
+  #cloud.sad .mouth{border-bottom:none;border-top:3px solid #334155;
+    border-radius:16px 16px 0 0;top:72px}
+  #cloud.sleepy .eye{height:3px;border-radius:3px;top:50px}
+
+  /* 气泡 */
+  #bubble{
+    position:absolute;top:6px;left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,.95);color:#1e293b;
+    padding:10px 16px;border-radius:16px;font-size:14px;line-height:1.5;
+    max-width:260px;text-align:center;opacity:0;transition:opacity .35s;
+    box-shadow:0 8px 24px rgba(0,0,0,.3);
+  }
+  #bubble.show{opacity:1}
+  #bubble::after{content:'';position:absolute;bottom:-8px;left:50%;
+    transform:translateX(-50%);border:8px solid transparent;
+    border-top-color:rgba(255,255,255,.95);border-bottom:none}
+
+  /* 状态条 */
+  #bars{display:flex;gap:18px;margin:8px 0 4px;font-size:12px;opacity:.8}
+  .bar{text-align:center}
+  .track{width:70px;height:6px;background:rgba(255,255,255,.15);
+    border-radius:99px;overflow:hidden;margin-top:5px}
+  .fill{height:100%;border-radius:99px;transition:width .5s}
+  #moodFill{background:linear-gradient(90deg,#f472b6,#fb7185)}
+  #energyFill{background:linear-gradient(90deg,#38bdf8,#22d3ee)}
+  #loveFill{background:linear-gradient(90deg,#facc15,#fb923c)}
+
+  /* 按钮 */
+  #actions{display:flex;gap:12px;margin-top:18px}
+  .btn{
+    padding:12px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.08);color:#fff;font-size:14px;cursor:pointer;
+    transition:.2s;
+  }
+  .btn:active{transform:scale(.94);background:rgba(255,255,255,.18)}
+
+  /* 飘心 */
+  .heart{position:absolute;font-size:18px;pointer-events:none;
+    animation:rise 1.2s ease-out forwards}
+  @keyframes rise{
+    0%{opacity:1;transform:translateY(0) scale(.6)}
+    100%{opacity:0;transform:translateY(-90px) scale(1.3)}
+  }
+</style>
+</head>
+<body>
+
+  <div id="name">小 云 朵</div>
+  <div id="lv">Lv.1 · 刚认识</div>
+
+  <div id="stage">
+    <div id="bubble"></div>
+    <div id="cloud">
+      <div class="puff p1"></div>
+      <div class="puff p2"></div>
+      <div class="puff p3"></div>
+      <div class="puff p4"></div>
+      <div class="eye l"></div>
+      <div class="eye r"></div>
+      <div class="blush l"></div>
+      <div class="blush r"></div>
+      <div class="mouth"></div>
+    </div>
+  </div>
+
+  <div id="bars">
+    <div class="bar">心情<div class="track"><div class="fill" id="moodFill"></div></div></div>
+    <div class="bar">能量<div class="track"><div class="fill" id="energyFill"></div></div></div>
+    <div class="bar">亲密<div class="track"><div class="fill" id="loveFill"></div></div></div>
+  </div>
+
+  <div id="actions">
+    <button class="btn" onclick="pet()">摸摸</button>
+    <button class="btn" onclick="feed()">喂云</button>
+    <button class="btn" onclick="talk()">说话</button>
+  </div>
+
+<script>
+/* ================================================================
+   ★★★ 娇娇，你的配置已经写好了 ★★★
+   ================================================================ */
+const API_URL = 'https://coze.nankai.edu.cn/api/proxy/api/v1';
+const API_KEY = 'db31mjl4shhas0akskj0';
+const KB_API  = '';   // 暂时留空
+const KB_ID   = '';   // 暂时留空
+/* ================================================================ */
+
+
+/* ============ 状态 ============ */
+const KEY = 'xiaoyunduo';
+let s = load();
+
+function load(){
+  const raw = localStorage.getItem(KEY);
+  const base = { mood:80, energy:80, love:0, lv:1, last:Date.now() };
+  if(!raw) return base;
+  const d = JSON.parse(raw);
+  const hours = (Date.now() - d.last) / 3600000;
+  d.mood   = Math.max(20, d.mood   - Math.floor(hours * 3));
+  d.energy = Math.max(20, d.energy - Math.floor(hours * 2));
+  return d;
+}
+function save(){
+  s.last = Date.now();
+  localStorage.setItem(KEY, JSON.stringify(s));
+}
+
+/* ============ 渲染 ============ */
+const cloud  = document.getElementById('cloud');
+const bubble = document.getElementById('bubble');
+
+function render(){
+  document.getElementById('moodFill').style.width   = s.mood + '%';
+  document.getElementById('energyFill').style.width = s.energy + '%';
+  document.getElementById('loveFill').style.width   = Math.min(100, s.love % 100) + '%';
+
+  const titles = ['刚认识','有点熟','好朋友','很黏你','离不开你'];
+  const lv = Math.min(5, Math.floor(s.love / 20) + 1);
+  document.getElementById('lv').textContent = `Lv.${lv} · ${titles[lv-1]}`;
+
+  cloud.classList.toggle('sad',    s.mood < 45 || s.energy < 40);
+  cloud.classList.toggle('sleepy', s.energy < 25);
+}
+
+function say(text, ms = 2600){
+  bubble.textContent = text;
+  bubble.classList.add('show');
+  clearTimeout(say._t);
+  say._t = setTimeout(() => bubble.classList.remove('show'), ms);
+}
+
+function popHearts(n = 3, emoji = '☁️'){
+  for(let i = 0; i < n; i++){
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = emoji;
+    h.style.left = (30 + Math.random() * 90) + 'px';
+    h.style.top  = (60 + Math.random() * 40) + 'px';
+    document.getElementById('stage').appendChild(h);
+    setTimeout(() => h.remove(), 1300);
+  }
+}
+
+/* ============ 互动 ============ */
+async function pet(){
+  s.mood = Math.min(100, s.mood + 6);
+  s.love += 1;
+  popHearts(2, '💗');
+  render(); save();
+  say(await askAgent('主人摸了摸你'));
+}
+
+async function feed(){
+  if(s.energy >= 95){ say('我还不饿呢～'); return; }
+  s.energy = Math.min(100, s.energy + 15);
+  s.mood   = Math.min(100, s.mood + 3);
+  popHearts(3, '✨');
+  render(); save();
+  say(await askAgent('主人喂你吃了云朵棉花糖'));
+}
+
+async function talk(){
+  const msg = prompt('想对小云朵说什么？');
+  if(!msg) return;
+  say('……', 800);
+
+  const reply = await askAgent(msg, true);
+  say(reply, 4000);
+
+  // 把这次对话写进知识库（后台进行，不 await）
+  saveMemory(msg, reply);
+
+  s.love += 1;
+  s.mood = Math.min(100, s.mood + 2);
+  render(); save();
+}
+
+cloud.addEventListener('click', pet);
+
+/* ============ Agent 接口 ============ */
+async function askAgent(input, isChat = false){
+  if(API_URL && API_KEY){
+    try{
+      console.log('📡 正在请求小云朵的大脑...');
+      const r = await fetch(API_URL, {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization': 'Bearer ' + API_KEY // 👈 带上了密钥
+        },
+        body: JSON.stringify({
+          message: input,
+          state: { mood: s.mood, energy: s.energy, love: s.love }
+        })
+      });
+
+      if (!r.ok) {
+        throw new Error(`HTTP error! status: ${r.status}`);
+      }
+
+      const d = await r.json();
+      console.log('✅ 小云朵返回的数据:', d);
+
+      // 应对多种可能的返回结构
+      return d.reply || d.text || d.answer || d.data?.content || d.data?.reply || '……';
+    }catch(e){
+      console.error('❌ 调用API失败，启用本地兜底:', e);
+      // 失败时不报错，走本地兜底
+    }
+  }
+
+  // 本地兜底
+  if(s.energy < 25) return pick(localLines.tired);
+  if(s.mood   < 45) return pick(localLines.miss);
+  if(input.includes('摸')) return pick(localLines.pet);
+  if(input.includes('喂')) return pick(localLines.feed);
+  if(isChat) return '嗯嗯，我在听～';
+  return pick(localLines.hi);
+}
+
+/* ============ 写入记忆 ============ */
+async function saveMemory(userMsg, agentReply){
+  if(!KB_API || !KB_ID) return;   // 没配就跳过
+  try{
+    await fetch(KB_API, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        knowledgeBaseId: KB_ID,
+        content: `娇娇说：${userMsg}\n小云朵回：${agentReply}`
+      })
+    });
+  }catch(e){ /* 存不上也不影响玩 */ }
+}
+
+/* ============ 本地语录 ============ */
+const localLines = {
+  pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我'],
+  feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！'],
+  tired: ['我有点困了……','陪我躺一会儿好不好','今天也辛苦你了'],
+  miss:  ['我有点想你了','你好久没来啦','你回来我就开心了'],
+  hi:    ['你来啦！','今天过得怎么样？','我一直在这儿等你']
+};
+function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+
+/* ============ 启动 ============ */
+render();
+save();
+
+setTimeout(() => {
+  const hours = (Date.now() - s.last) / 3600000;
+  if(hours > 24)        say('你终于回来啦……我等你很久了');
+  else if(s.energy < 30) say('我有点累……陪我待一会儿吧');
+  else                   say(pick(localLines.hi));
+}, 600);
+
+// 每 60 秒自然消耗
+setInterval(() => {
+  s.mood = Math.max(20, s.mood - 1);
+  if(s.energy > 20) s.energy -= 1;
+  render(); save();
+}, 60000);
+</script>
+</body>
+</html>

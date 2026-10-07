@@ -7,20 +7,67 @@
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   
-  /* 🌤️ 天空蓝背景 + 深色文字 */
+  /* 🌤️ 天空背景（带小云朵） */
   body{
     margin:0;min-height:100vh;display:flex;flex-direction:column;
     align-items:center;justify-content:center;
-    background:linear-gradient(180deg,#a2d2ff,#e0f7fa); 
+    background:linear-gradient(180deg,#9cd2fe 0%,#e0f4ff 100%); /* 更接近图片的蓝白渐变 */
     font-family:system-ui,-apple-system,sans-serif;color:#334155;
     user-select:none;overflow:hidden;
   }
+
+  /* ✨ 背景云层动画 */
+  #sky-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .cloud-bg {
+    position: absolute;
+    background: #fff;
+    border-radius: 50px;
+    opacity: 0.8;
+    filter: blur(4px); /* 让云朵毛茸茸的 */
+    animation: drift linear infinite;
+  }
+  /* 用伪元素做出云朵的"小鼓包" */
+  .cloud-bg::before {
+    content: ''; position: absolute; top: -25px; left: 20px;
+    width: 60px; height: 60px; background: #fff; border-radius: 50%;
+  }
+  .cloud-bg::after {
+    content: ''; position: absolute; top: -15px; right: 20px;
+    width: 50px; height: 50px; background: #fff; border-radius: 50%;
+  }
+
+  /* 四个不同大小、速度的背景云 */
+  .c1 { width: 120px; height: 40px; top: 15%; left: -200px; animation-duration: 25s; }
+  .c2 { width: 180px; height: 60px; top: 35%; left: -250px; animation-duration: 35s; animation-delay: 5s; opacity: 0.6; filter: blur(6px); }
+  .c3 { width: 90px; height: 30px; top: 70%; left: -150px; animation-duration: 20s; animation-delay: 12s; opacity: 0.9; }
+  .c4 { width: 140px; height: 50px; top: 85%; left: -200px; animation-duration: 40s; animation-delay: 2s; opacity: 0.5; filter: blur(5px); }
+
+  @keyframes drift {
+    0% { transform: translateX(0) translateY(0); }
+    50% { transform: translateX(50vw) translateY(-10px); }
+    100% { transform: translateX(120vw) translateY(0); }
+  }
+
+  /* 确保内容在云层之上 */
+  #name, #lv, #stage, #bars, #actions {
+    position: relative;
+    z-index: 1;
+  }
+
   #name{font-size:14px;opacity:.75;letter-spacing:2px}
   #lv{font-size:12px;opacity:.55;margin-top:4px}
 
+  /* 云朵舞台 */
   #stage{position:relative;height:280px;width:100%;
     display:flex;align-items:center;justify-content:center;margin:10px 0}
 
+  /* 🔍 云朵放大镜容器 */
   #cloud-wrapper {
     display: flex;
     align-items: center;
@@ -31,6 +78,7 @@
     transform-origin: center center;
   }
 
+  /* ☁️ 小云朵本体 */
   #cloud{
     position:relative;width:150px;height:90px;
     animation:float 4s ease-in-out infinite;
@@ -43,6 +91,7 @@
     50%{transform:translateY(-14px)}
   }
   
+  /* 💥 Q弹动画 */
   @keyframes cloudBounce {
     0% { transform: translateY(0) scale(1); }
     30% { transform: translateY(10px) scale(1.1, 0.9); }
@@ -59,6 +108,7 @@
   .p3{width:74px;height:74px;right:0;top:18px}
   .p4{width:110px;height:56px;left:20px;bottom:0;border-radius:40px}
 
+  /* 表情 */
   .eye{position:absolute;width:12px;height:14px;background:#334155;
     border-radius:50%;top:44px;animation:blink 5s infinite}
   .eye.l{left:52px}
@@ -69,6 +119,7 @@
   .blush.l{left:36px}
   .blush.r{right:36px}
   
+  /* 👄 嘴巴 + 说话动画 */
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
     transform:translateX(-50%);border-bottom:3px solid #334155;
     border-radius:0 0 16px 16px;transition:all .3s}
@@ -78,12 +129,14 @@
   }
   #cloud.talking .mouth { animation: talkAnim 0.6s ease-in-out infinite; }
 
+  /* 低状态的样子 */
   #cloud.sad .puff{background:#f1f5f9}
   #cloud.sad{filter:saturate(.5)}
   #cloud.sad .mouth{border-bottom:none;border-top:3px solid #334155;
     border-radius:16px 16px 0 0;top:72px}
   #cloud.sleepy .eye{height:3px;border-radius:3px;top:50px}
 
+  /* 气泡 */
   #bubble{
     position:absolute;top:6px;left:50%;transform:translateX(-50%);
     background:rgba(255,255,255,.95);color:#334155;
@@ -96,6 +149,7 @@
     transform:translateX(-50%);border:8px solid transparent;
     border-top-color:rgba(255,255,255,.95);border-bottom:none}
 
+  /* 状态条 */
   #bars{display:flex;gap:18px;margin:8px 0 4px;font-size:12px;opacity:.8}
   .bar{text-align:center}
   .track{width:70px;height:6px;background:rgba(0,0,0,.08);
@@ -105,14 +159,17 @@
   #energyFill{background:linear-gradient(90deg,#38bdf8,#22d3ee)}
   #loveFill{background:linear-gradient(90deg,#facc15,#fb923c)}
 
+  /* 按钮 */
   #actions{display:flex;gap:12px;margin-top:18px}
   .btn{
     padding:12px 20px;border-radius:999px;border:1px solid rgba(0,0,0,.1);
     background:rgba(255,255,255,.7);color:#334155;font-size:14px;cursor:pointer;
     transition:.2s;box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    backdrop-filter: blur(4px);
   }
   .btn:active{transform:scale(.94);background:rgba(255,255,255,.95)}
 
+  /* 飘心 */
   .heart{position:absolute;font-size:18px;pointer-events:none;
     animation:rise 1.2s ease-out forwards}
   @keyframes rise{
@@ -122,6 +179,14 @@
 </style>
 </head>
 <body>
+
+  <!-- 👇 加在背景里的动态云朵 -->
+  <div id="sky-bg">
+    <div class="cloud-bg c1"></div>
+    <div class="cloud-bg c2"></div>
+    <div class="cloud-bg c3"></div>
+    <div class="cloud-bg c4"></div>
+  </div>
 
   <div id="name">小 云 朵</div>
   <div id="lv">Lv.1 · 刚认识</div>
@@ -157,7 +222,7 @@
 
 <script>
 /* ================================================================
-   ★★★ 单机盲盒音效版 ★★★
+   ★★★ 单机盲盒音效版（带动态天空背景） ★★★
    ================================================================ */
 
 const KEY = 'xiaoyunduo';
@@ -184,7 +249,6 @@ const bubble = document.getElementById('bubble');
 /* ============ 🔊 声音合成引擎 (Web Audio API) ============ */
 let audioCtx = null;
 
-// 初始化音频环境（必须在用户点击后触发）
 function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -194,7 +258,6 @@ function initAudio() {
   }
 }
 
-// 播放一个单音
 function playTone(freq, type = 'sine', duration = 0.1, volume = 0.1, delay = 0) {
   if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
@@ -213,31 +276,11 @@ function playTone(freq, type = 'sine', duration = 0.1, volume = 0.1, delay = 0) 
   osc.stop(audioCtx.currentTime + delay + duration);
 }
 
-// 🎵 音效库
 const sfx = {
-  // 摸摸：清脆的“啵”
-  pet: () => {
-    playTone(600, 'sine', 0.1, 0.15);
-    playTone(800, 'sine', 0.1, 0.1, 0.05);
-  },
-  // 喂云：轻快的上升音“叮咚”
-  feed: () => {
-    playTone(523.25, 'triangle', 0.1, 0.15); // C5
-    playTone(659.25, 'triangle', 0.15, 0.15, 0.1); // E5
-  },
-  // 说话：可爱的“咕噜”弹跳音
-  talk: () => {
-    playTone(400, 'sine', 0.08, 0.1);
-    playTone(500, 'sine', 0.08, 0.1, 0.08);
-    playTone(600, 'sine', 0.08, 0.1, 0.16);
-  },
-  // 隐藏款：魔法风铃（琶音）
-  magic: () => {
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C大调琶音
-    notes.forEach((freq, i) => {
-      playTone(freq, 'sine', 0.4, 0.1, i * 0.1);
-    });
-  }
+  pet: () => { playTone(600, 'sine', 0.1, 0.15); playTone(800, 'sine', 0.1, 0.1, 0.05); },
+  feed: () => { playTone(523.25, 'triangle', 0.1, 0.15); playTone(659.25, 'triangle', 0.15, 0.15, 0.1); },
+  talk: () => { playTone(400, 'sine', 0.08, 0.1); playTone(500, 'sine', 0.08, 0.1, 0.08); playTone(600, 'sine', 0.08, 0.1, 0.16); },
+  magic: () => { [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => playTone(f, 'sine', 0.4, 0.1, i * 0.1)); }
 };
 
 /* ============ 渲染与互动 ============ */
@@ -287,8 +330,7 @@ function popHearts(n = 3, emoji = '☁️'){
 }
 
 function pet(){
-  initAudio(); // 唤醒音频
-  sfx.pet();   // 播放音效
+  initAudio(); sfx.pet();
   s.mood = Math.min(100, s.mood + 6);
   s.love += 1;
   popHearts(2, '💗');
@@ -298,8 +340,7 @@ function pet(){
 }
 
 function feed(){
-  initAudio();
-  sfx.feed();
+  initAudio(); sfx.feed();
   if(s.energy >= 95){ say('我还不饿呢～'); return; }
   s.energy = Math.min(100, s.energy + 15);
   s.mood   = Math.min(100, s.mood + 3);
@@ -317,82 +358,40 @@ function talk(){
 
   setTimeout(() => {
     let reply = "";
-    let isHidden = false;
-
-    // 💎 隐藏款（10%概率触发）
     if (Math.random() < 0.1) {
-      reply = pick(localLines.hidden);
-      isHidden = true;
-      sfx.magic(); // 播魔法音效
-      popHearts(5, '🌈');
-    } 
-    // 🧸 情绪匹配
-    else if (msg.includes('累') || msg.includes('烦') || msg.includes('难过') || msg.includes('哭')) {
-      reply = pick(localLines.comfort);
-      sfx.talk();
+      reply = pick(localLines.hidden); sfx.magic(); popHearts(5, '🌈');
+    } else if (msg.includes('累') || msg.includes('烦') || msg.includes('难过')) {
+      reply = pick(localLines.comfort); sfx.talk();
     } else if (msg.includes('喜欢') || msg.includes('爱') || msg.includes('想你')) {
-      reply = pick(localLines.love);
-      sfx.talk();
+      reply = pick(localLines.love); sfx.talk();
     } else if (msg.includes('你好') || msg.includes('嗨') || msg.includes('在吗')) {
-      reply = pick(localLines.hi);
-      sfx.talk();
-    } 
-    // 🎲 随机盲盒
-    else {
-      reply = pick(localLines.normal);
-      sfx.talk();
+      reply = pick(localLines.hi); sfx.talk();
+    } else {
+      reply = pick(localLines.normal); sfx.talk();
     }
-    
     say(reply, 4000);
-    s.love += 1;
-    s.mood = Math.min(100, s.mood + 2);
+    s.love += 1; s.mood = Math.min(100, s.mood + 2);
     render(); save();
   }, 600);
 }
 
-cloud.addEventListener('click', () => {
-  initAudio();
-  pet();
-});
+cloud.addEventListener('click', () => { initAudio(); pet(); });
 
 /* ============ 文本库 ============ */
 const localLines = {
   pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我','呼噜呼噜～'],
   feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！','今天吃的是草莓味耶！'],
-  comfort: [
-    '摸摸头，今天辛苦啦～','抱抱你，烦恼都变成气泡飞走啦！',
-    '不管发生什么，小云朵都会一直陪着你的。','呼——帮你把不开心都吹走！',
-    '累了就靠在我身上休息一下吧。','你已经做得很好了，不要对自己太苛刻哦。'
-  ],
-  love: [
-    '我也最喜欢你了！贴贴～','离你近一点，再近一点～',
-    '嘿嘿，被你表白啦，云朵脸红红了！','你是我的专属小主人呀！','我也想你啦，一直都在想你哦。'
-  ],
-  hi: [
-    '你来啦！我一直在这儿等你～','嗨嗨！今天过得怎么样？',
-    '不管怎样，今天也要开心哦！','我刚刚在云层里打了个滚，你就来了！'
-  ],
-  normal: [
-    '唔……我刚刚在云层里打了个滚～','嘿嘿，被你抓到我发呆啦！',
-    '今天的小云朵是棉花糖味的哦！','呼……刚睡醒，你在叫我吗？',
-    '我猜你现在肯定在想我！','不管你理不理我，我都会在这里飘来飘去～',
-    '如果心情有颜色，你今天是什么颜色的呀？','要不要一起发个呆？就一小会儿～',
-    '我刚才偷偷打了个哈欠，没被发现吧？'
-  ],
-  hidden: [
-    '✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！',
-    '💎【稀有款】偷偷告诉你，我今天其实是草莓味的！',
-    '🌟【传说款】其实……我是老天爷派来专门陪你的小云朵！',
-    '🎉【彩蛋】哔哔——小云朵卡壳了，并趁机卖了个萌！',
-    '🌈【限定款】今天的小云朵光环全开，为你赶走所有不开心！'
-  ]
+  comfort: ['摸摸头，今天辛苦啦～','抱抱你，烦恼都变成气泡飞走啦！','不管发生什么，小云朵都会一直陪着你的。','呼——帮你把不开心都吹走！','累了就靠在我身上休息一下吧。','你已经做得很好了，不要对自己太苛刻哦。'],
+  love: ['我也最喜欢你了！贴贴～','离你近一点，再近一点～','嘿嘿，被你表白啦，云朵脸红红了！','你是我的专属小主人呀！','我也想你啦，一直都在想你哦。'],
+  hi: ['你来啦！我一直在这儿等你～','嗨嗨！今天过得怎么样？','不管怎样，今天也要开心哦！','我刚刚在云层里打了个滚，你就来了！'],
+  normal: ['唔……我刚刚在云层里打了个滚～','嘿嘿，被你抓到我发呆啦！','今天的小云朵是棉花糖味的哦！','呼……刚睡醒，你在叫我吗？','我猜你现在肯定在想我！','不管你理不理我，我都会在这里飘来飘去～','如果心情有颜色，你今天是什么颜色的呀？','要不要一起发个呆？就一小会儿～','我刚才偷偷打了个哈欠，没被发现吧？'],
+  hidden: ['✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！','💎【稀有款】偷偷告诉你，我今天其实是草莓味的！','🌟【传说款】其实……我是老天爷派来专门陪你的小云朵！','🎉【彩蛋】哔哔——小云朵卡壳了，并趁机卖了个萌！','🌈【限定款】今天的小云朵光环全开，为你赶走所有不开心！']
 };
 
 function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 
 /* ============ 启动 ============ */
-render();
-save();
+render(); save();
 
 setTimeout(() => {
   const hours = (Date.now() - s.last) / 3600000;

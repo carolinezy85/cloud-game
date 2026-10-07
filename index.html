@@ -29,7 +29,7 @@
     justify-content: center;
     width: 150px; 
     height: 90px;
-    /* 👇 调整大小改这里！1.3是放大30% */
+    /* 👇 娇娇，调整大小改这里！1.3是放大30%，1.5是放大50% */
     transform: scale(1.3); 
     transform-origin: center center;
   }
@@ -174,12 +174,11 @@
 
 <script>
 /* ================================================================
-   ★★★ 配置区：已经换成了 Codex API ★★★
+   ★★★ 配置区：已经接入扣子（Coze）大脑 ★★★
    ================================================================ */
-const API_URL = 'https://api.openai.com/v1/chat/completions';
-const API_KEY = 'sk-6d7cfb887431419bb85f3f1ebd3db20a';
-const KB_API  = '';   
-const KB_ID   = '';   
+const API_URL = 'https://api.coze.cn/open_api/v1/chat';
+const API_KEY = 'pat_swYK5cKDeoC1pD0LcpQjoxov3An9HeHj7LXBLzZ60PEwCdZnfodWghygLL7O5sIs';
+const BOT_ID  = '7693908803167207462';
 /* ================================================================ */
 
 const KEY = 'xiaoyunduo';
@@ -273,7 +272,6 @@ async function talk(){
 
   const reply = await askAgent(msg, true);
   say(reply, 4000);
-  saveMemory(msg, reply);
 
   s.love += 1;
   s.mood = Math.min(100, s.mood + 2);
@@ -282,10 +280,11 @@ async function talk(){
 
 cloud.addEventListener('click', pet);
 
+/* ============ 扣子（Coze）Agent 接口 ============ */
 async function askAgent(input, isChat = false){
-  if(API_URL && API_KEY){
+  if(API_URL && API_KEY && BOT_ID){
     try{
-      console.log('📡 正在通过 Vercel 代理请求小云朵的大脑...');
+      console.log('📡 正在请求扣子小云朵...');
       const r = await fetch(API_URL, {
         method:'POST',
         headers:{
@@ -293,22 +292,29 @@ async function askAgent(input, isChat = false){
           'Authorization': 'Bearer ' + API_KEY
         },
         body: JSON.stringify({
-        model: "gpt-5.3-codex", // 这里填 Codex 的模型名
-  messages: [
-    { role: "system", content: "你是小云朵..." },
-    { role: "user", content: input }
-  ],
-  temperature: 0.8
+          bot_id: BOT_ID,
+          user_id: "jiaojiao_user", // 固定用户标识，用于关联上下文
+          // 把状态巧妙地传给小云朵，让它在扣子知道娇娇现在累不累
+          query: `当前状态：心情${s.mood}，能量${s.energy}，亲密${s.love}。娇娇说：${input}`,
+          stream: false
         })
       });
+      
       if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
       const d = await r.json();
-      console.log('✅ 小云朵返回的数据:', d);
-      return d.reply || d.text || d.answer || d.data?.content || d.data?.reply || '……';
+      console.log('✅ 扣子返回的数据:', d);
+      
+      // 解析扣子的返回格式
+      if (d.messages && d.messages.length > 0) {
+        return d.messages[0].content || '……';
+      }
+      return '……';
     }catch(e){
-      console.error('❌ 调用API失败，启用本地兜底:', e);
+      console.error('❌ 调用扣子API失败，启用本地兜底:', e);
     }
   }
+  
+  // 本地兜底（断网或没配置好时用）
   if(s.energy < 25) return pick(localLines.tired);
   if(s.mood   < 45) return pick(localLines.miss);
   if(input.includes('摸')) return pick(localLines.pet);
@@ -317,20 +323,7 @@ async function askAgent(input, isChat = false){
   return pick(localLines.hi);
 }
 
-async function saveMemory(userMsg, agentReply){
-  if(!KB_API || !KB_ID) return;
-  try{
-    await fetch(KB_API, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        knowledgeBaseId: KB_ID,
-        content: `娇娇说：${userMsg}\n小云朵回：${agentReply}`
-      })
-    });
-  }catch(e){}
-}
-
+/* ============ 本地语录兜底 ============ */
 const localLines = {
   pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我'],
   feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！'],
@@ -340,6 +333,7 @@ const localLines = {
 };
 function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 
+/* ============ 启动 ============ */
 render();
 save();
 
@@ -350,6 +344,7 @@ setTimeout(() => {
   else                   say(pick(localLines.hi));
 }, 600);
 
+// 每 60 秒自然消耗
 setInterval(() => {
   s.mood = Math.max(20, s.mood - 1);
   if(s.energy > 20) s.energy -= 1;

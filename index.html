@@ -29,7 +29,6 @@
     justify-content: center;
     width: 150px; 
     height: 90px;
-    /* 👇 调整大小改这里！1.3是放大30%，1.5是放大50% */
     transform: scale(1.3); 
     transform-origin: center center;
   }
@@ -54,9 +53,7 @@
     60% { transform: translateY(-5px) scale(0.95, 1.05); }
     100% { transform: translateY(0) scale(1); }
   }
-  #cloud.bounce {
-    animation: cloudBounce 0.5s ease-out;
-  }
+  #cloud.bounce { animation: cloudBounce 0.5s ease-out; }
 
   .puff{position:absolute;background:#fff;border-radius:50%;
     box-shadow:0 15px 30px rgba(0,0,0,.08), inset 0 -6px 15px rgba(0,0,0,.05);
@@ -81,14 +78,11 @@
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
     transform:translateX(-50%);border-bottom:3px solid #334155;
     border-radius:0 0 16px 16px;transition:all .3s}
-    
   @keyframes talkAnim {
     0%, 100% { transform: translateX(-50%) scaleY(1); }
     50% { transform: translateX(-50%) scaleY(0.6); }
   }
-  #cloud.talking .mouth {
-    animation: talkAnim 0.6s ease-in-out infinite;
-  }
+  #cloud.talking .mouth { animation: talkAnim 0.6s ease-in-out infinite; }
 
   /* 低状态的样子 */
   #cloud.sad .puff{background:#f1f5f9}
@@ -174,12 +168,9 @@
 
 <script>
 /* ================================================================
-   ★★★ 配置区：接入扣子 ★★★
+   ★★★ 纯单机盲盒版：每次说话都有惊喜 ★★★
    ================================================================ */
-const API_URL = 'https://vercel-api-proxy-ten-kappa.vercel.app/https/api.coze.cn/open_api/v3/chat';
-const API_KEY = 'pat_swYK5cKDeoC1pD0LcpQjoxov3An9HeHj7LXBLzZ60PEwCdZnfodWghygLL7O5sIs';
-const BOT_ID  = '7693908803167207462';
-/* ================================================================ */
+
 const KEY = 'xiaoyunduo';
 let s = load();
 
@@ -245,99 +236,119 @@ function popHearts(n = 3, emoji = '☁️'){
   }
 }
 
-async function pet(){
+function pet(){
   s.mood = Math.min(100, s.mood + 6);
   s.love += 1;
   popHearts(2, '💗');
   triggerBounce();
   render(); save();
-  say(await askAgent('主人摸了摸你'));
+  say(pick(localLines.pet));
 }
 
-async function feed(){
+function feed(){
   if(s.energy >= 95){ say('我还不饿呢～'); return; }
   s.energy = Math.min(100, s.energy + 15);
   s.mood   = Math.min(100, s.mood + 3);
   popHearts(3, '✨');
   triggerBounce();
   render(); save();
-  say(await askAgent('主人喂你吃了云朵棉花糖'));
+  say(pick(localLines.feed));
 }
 
-async function talk(){
+/* ============ 🎁 核心：盲盒系统 ============ */
+function talk(){
   const msg = prompt('想对小云朵说什么？');
   if(!msg) return;
   say('……', 800);
 
-  const reply = await askAgent(msg, true);
-  say(reply, 4000);
+  setTimeout(() => {
+    let reply = "";
 
-  s.love += 1;
-  s.mood = Math.min(100, s.mood + 2);
-  render(); save();
+    // 💎 1. 先检查隐藏款（10%概率触发）
+    if (Math.random() < 0.1) {
+      reply = pick(localLines.hidden);
+      popHearts(5, '🌈'); // 隐藏款多飘一点彩虹
+    } 
+    // 🧸 2. 根据你输入的内容匹配（伪随机）
+    else if (msg.includes('累') || msg.includes('烦') || msg.includes('难过') || msg.includes('哭')) {
+      reply = pick(localLines.comfort);
+    } else if (msg.includes('喜欢') || msg.includes('爱') || msg.includes('想你')) {
+      reply = pick(localLines.love);
+    } else if (msg.includes('你好') || msg.includes('嗨') || msg.includes('在吗')) {
+      reply = pick(localLines.hi);
+    } 
+    // 🎲 3. 兜底：完全随机盲盒
+    else {
+      reply = pick(localLines.normal);
+    }
+    
+    say(reply, 4000);
+    
+    // 互动增加亲密值和心情
+    s.love += 1;
+    s.mood = Math.min(100, s.mood + 2);
+    render(); save();
+  }, 600);
 }
 
 cloud.addEventListener('click', pet);
 
-/* ============ 扣子（Coze）v3 Agent 接口 ============ */
-async function askAgent(input, isChat = false){
-  if(API_URL && API_KEY && BOT_ID){
-    try{
-      console.log('📡 正在请求扣子小云朵...');
-      
-      const payload = {
-        bot_id: BOT_ID,
-        user_id: "jiaojiao_user",
-        stream: false,
-        additional_messages: [
-          {
-            role: "user",
-            content: `当前状态：心情${s.mood}，能量${s.energy}，亲密${s.love}。娇娇说：${input}`,
-            content_type: "text"
-          }
-        ]
-      };
-
-      const r = await fetch(API_URL, {
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'Authorization': 'Bearer ' + API_KEY
-        },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
-      const d = await r.json();
-      console.log('✅ 扣子返回的数据:', d);
-      
-      // 解析扣子的返回格式
-      if (d.messages && d.messages.length > 0) {
-        return d.messages[0].content || '……';
-      }
-      return '……';
-    }catch(e){
-      console.error('❌ 调用扣子API失败，启用本地兜底:', e);
-    }
-  }
-  
-  // 本地兜底（断网或没配置好时用）
-  if(s.energy < 25) return pick(localLines.tired);
-  if(s.mood   < 45) return pick(localLines.miss);
-  if(input.includes('摸')) return pick(localLines.pet);
-  if(input.includes('喂')) return pick(localLines.feed);
-  if(isChat) return '嗯嗯，我在听～';
-  return pick(localLines.hi);
-}
-
-/* ============ 本地语录兜底 ============ */
+/* ============ 文本库 ============ */
 const localLines = {
-  pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我'],
-  feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！'],
-  tired: ['我有点困了……','陪我躺一会儿好不好','今天也辛苦你了'],
-  miss:  ['我有点想你了','你好久没来啦','你回来我就开心了'],
-  hi:    ['你来啦！','今天过得怎么样？','我一直在这儿等你']
+  // 常规动作
+  pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我','呼噜呼噜～'],
+  feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！','今天吃的是草莓味耶！'],
+  
+  // 安慰款（当你说累、烦、难过时）
+  comfort: [
+    '摸摸头，今天辛苦啦～',
+    '抱抱你，烦恼都变成气泡飞走啦！',
+    '不管发生什么，小云朵都会一直陪着你的。',
+    '呼——帮你把不开心都吹走！',
+    '累了就靠在我身上休息一下吧。',
+    '你已经做得很好了，不要对自己太苛刻哦。'
+  ],
+
+  // 甜蜜款（当你说喜欢、爱、想我时）
+  love: [
+    '我也最喜欢你了！贴贴～',
+    '离你近一点，再近一点～',
+    '嘿嘿，被你表白啦，云朵脸红红了！',
+    '你是我的专属小主人呀！',
+    '我也想你啦，一直都在想你哦。'
+  ],
+
+  // 打招呼款
+  hi: [
+    '你来啦！我一直在这儿等你～',
+    '嗨嗨！今天过得怎么样？',
+    '不管怎样，今天也要开心哦！',
+    '我刚刚在云层里打了个滚，你就来了！'
+  ],
+
+  // 随机盲盒常规款（说什么都可能触发）
+  normal: [
+    '唔……我刚刚在云层里打了个滚～',
+    '嘿嘿，被你抓到我发呆啦！',
+    '今天的小云朵是棉花糖味的哦！',
+    '呼……刚睡醒，你在叫我吗？',
+    '我猜你现在肯定在想我！',
+    '不管你理不理我，我都会在这里飘来飘去～',
+    '如果心情有颜色，你今天是什么颜色的呀？',
+    '要不要一起发个呆？就一小会儿～',
+    '我刚才偷偷打了个哈欠，没被发现吧？'
+  ],
+
+  // 💎 隐藏款（10%概率）
+  hidden: [
+    '✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！',
+    '💎【稀有款】偷偷告诉你，我今天其实是草莓味的！',
+    '🌟【传说款】其实……我是老天爷派来专门陪你的小云朵！',
+    '🎉【彩蛋】哔哔——小云朵卡壳了，并趁机卖了个萌！',
+    '🌈【限定款】今天的小云朵光环全开，为你赶走所有不开心！'
+  ]
 };
+
 function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 
 /* ============ 启动 ============ */

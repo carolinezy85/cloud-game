@@ -18,11 +18,9 @@
   #name{font-size:14px;opacity:.75;letter-spacing:2px}
   #lv{font-size:12px;opacity:.55;margin-top:4px}
 
-  /* 云朵舞台 */
   #stage{position:relative;height:280px;width:100%;
     display:flex;align-items:center;justify-content:center;margin:10px 0}
 
-  /* 🔍 云朵放大镜容器 */
   #cloud-wrapper {
     display: flex;
     align-items: center;
@@ -33,7 +31,6 @@
     transform-origin: center center;
   }
 
-  /* ☁️ 小云朵本体 */
   #cloud{
     position:relative;width:150px;height:90px;
     animation:float 4s ease-in-out infinite;
@@ -46,7 +43,6 @@
     50%{transform:translateY(-14px)}
   }
   
-  /* 💥 Q弹动画 */
   @keyframes cloudBounce {
     0% { transform: translateY(0) scale(1); }
     30% { transform: translateY(10px) scale(1.1, 0.9); }
@@ -63,7 +59,6 @@
   .p3{width:74px;height:74px;right:0;top:18px}
   .p4{width:110px;height:56px;left:20px;bottom:0;border-radius:40px}
 
-  /* 表情 */
   .eye{position:absolute;width:12px;height:14px;background:#334155;
     border-radius:50%;top:44px;animation:blink 5s infinite}
   .eye.l{left:52px}
@@ -74,7 +69,6 @@
   .blush.l{left:36px}
   .blush.r{right:36px}
   
-  /* 👄 嘴巴 + 说话动画 (速度适中) */
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
     transform:translateX(-50%);border-bottom:3px solid #334155;
     border-radius:0 0 16px 16px;transition:all .3s}
@@ -84,14 +78,12 @@
   }
   #cloud.talking .mouth { animation: talkAnim 0.6s ease-in-out infinite; }
 
-  /* 低状态的样子 */
   #cloud.sad .puff{background:#f1f5f9}
   #cloud.sad{filter:saturate(.5)}
   #cloud.sad .mouth{border-bottom:none;border-top:3px solid #334155;
     border-radius:16px 16px 0 0;top:72px}
   #cloud.sleepy .eye{height:3px;border-radius:3px;top:50px}
 
-  /* 气泡 */
   #bubble{
     position:absolute;top:6px;left:50%;transform:translateX(-50%);
     background:rgba(255,255,255,.95);color:#334155;
@@ -104,7 +96,6 @@
     transform:translateX(-50%);border:8px solid transparent;
     border-top-color:rgba(255,255,255,.95);border-bottom:none}
 
-  /* 状态条 */
   #bars{display:flex;gap:18px;margin:8px 0 4px;font-size:12px;opacity:.8}
   .bar{text-align:center}
   .track{width:70px;height:6px;background:rgba(0,0,0,.08);
@@ -114,7 +105,6 @@
   #energyFill{background:linear-gradient(90deg,#38bdf8,#22d3ee)}
   #loveFill{background:linear-gradient(90deg,#facc15,#fb923c)}
 
-  /* 按钮 */
   #actions{display:flex;gap:12px;margin-top:18px}
   .btn{
     padding:12px 20px;border-radius:999px;border:1px solid rgba(0,0,0,.1);
@@ -123,7 +113,6 @@
   }
   .btn:active{transform:scale(.94);background:rgba(255,255,255,.95)}
 
-  /* 飘心 */
   .heart{position:absolute;font-size:18px;pointer-events:none;
     animation:rise 1.2s ease-out forwards}
   @keyframes rise{
@@ -168,7 +157,7 @@
 
 <script>
 /* ================================================================
-   ★★★ 纯单机盲盒版：每次说话都有惊喜 ★★★
+   ★★★ 单机盲盒音效版 ★★★
    ================================================================ */
 
 const KEY = 'xiaoyunduo';
@@ -191,6 +180,67 @@ function save(){
 
 const cloud  = document.getElementById('cloud');
 const bubble = document.getElementById('bubble');
+
+/* ============ 🔊 声音合成引擎 (Web Audio API) ============ */
+let audioCtx = null;
+
+// 初始化音频环境（必须在用户点击后触发）
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+// 播放一个单音
+function playTone(freq, type = 'sine', duration = 0.1, volume = 0.1, delay = 0) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+  
+  gain.gain.setValueAtTime(volume, audioCtx.currentTime + delay);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+  
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  osc.start(audioCtx.currentTime + delay);
+  osc.stop(audioCtx.currentTime + delay + duration);
+}
+
+// 🎵 音效库
+const sfx = {
+  // 摸摸：清脆的“啵”
+  pet: () => {
+    playTone(600, 'sine', 0.1, 0.15);
+    playTone(800, 'sine', 0.1, 0.1, 0.05);
+  },
+  // 喂云：轻快的上升音“叮咚”
+  feed: () => {
+    playTone(523.25, 'triangle', 0.1, 0.15); // C5
+    playTone(659.25, 'triangle', 0.15, 0.15, 0.1); // E5
+  },
+  // 说话：可爱的“咕噜”弹跳音
+  talk: () => {
+    playTone(400, 'sine', 0.08, 0.1);
+    playTone(500, 'sine', 0.08, 0.1, 0.08);
+    playTone(600, 'sine', 0.08, 0.1, 0.16);
+  },
+  // 隐藏款：魔法风铃（琶音）
+  magic: () => {
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C大调琶音
+    notes.forEach((freq, i) => {
+      playTone(freq, 'sine', 0.4, 0.1, i * 0.1);
+    });
+  }
+};
+
+/* ============ 渲染与互动 ============ */
 
 function render(){
   document.getElementById('moodFill').style.width   = s.mood + '%';
@@ -237,6 +287,8 @@ function popHearts(n = 3, emoji = '☁️'){
 }
 
 function pet(){
+  initAudio(); // 唤醒音频
+  sfx.pet();   // 播放音效
   s.mood = Math.min(100, s.mood + 6);
   s.love += 1;
   popHearts(2, '💗');
@@ -246,6 +298,8 @@ function pet(){
 }
 
 function feed(){
+  initAudio();
+  sfx.feed();
   if(s.energy >= 95){ say('我还不饿呢～'); return; }
   s.energy = Math.min(100, s.energy + 15);
   s.mood   = Math.min(100, s.mood + 3);
@@ -255,91 +309,76 @@ function feed(){
   say(pick(localLines.feed));
 }
 
-/* ============ 🎁 核心：盲盒系统 ============ */
 function talk(){
+  initAudio();
   const msg = prompt('想对小云朵说什么？');
   if(!msg) return;
   say('……', 800);
 
   setTimeout(() => {
     let reply = "";
+    let isHidden = false;
 
-    // 💎 1. 先检查隐藏款（10%概率触发）
+    // 💎 隐藏款（10%概率触发）
     if (Math.random() < 0.1) {
       reply = pick(localLines.hidden);
-      popHearts(5, '🌈'); // 隐藏款多飘一点彩虹
+      isHidden = true;
+      sfx.magic(); // 播魔法音效
+      popHearts(5, '🌈');
     } 
-    // 🧸 2. 根据你输入的内容匹配（伪随机）
+    // 🧸 情绪匹配
     else if (msg.includes('累') || msg.includes('烦') || msg.includes('难过') || msg.includes('哭')) {
       reply = pick(localLines.comfort);
+      sfx.talk();
     } else if (msg.includes('喜欢') || msg.includes('爱') || msg.includes('想你')) {
       reply = pick(localLines.love);
+      sfx.talk();
     } else if (msg.includes('你好') || msg.includes('嗨') || msg.includes('在吗')) {
       reply = pick(localLines.hi);
+      sfx.talk();
     } 
-    // 🎲 3. 兜底：完全随机盲盒
+    // 🎲 随机盲盒
     else {
       reply = pick(localLines.normal);
+      sfx.talk();
     }
     
     say(reply, 4000);
-    
-    // 互动增加亲密值和心情
     s.love += 1;
     s.mood = Math.min(100, s.mood + 2);
     render(); save();
   }, 600);
 }
 
-cloud.addEventListener('click', pet);
+cloud.addEventListener('click', () => {
+  initAudio();
+  pet();
+});
 
 /* ============ 文本库 ============ */
 const localLines = {
-  // 常规动作
   pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我','呼噜呼噜～'],
   feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！','今天吃的是草莓味耶！'],
-  
-  // 安慰款（当你说累、烦、难过时）
   comfort: [
-    '摸摸头，今天辛苦啦～',
-    '抱抱你，烦恼都变成气泡飞走啦！',
-    '不管发生什么，小云朵都会一直陪着你的。',
-    '呼——帮你把不开心都吹走！',
-    '累了就靠在我身上休息一下吧。',
-    '你已经做得很好了，不要对自己太苛刻哦。'
+    '摸摸头，今天辛苦啦～','抱抱你，烦恼都变成气泡飞走啦！',
+    '不管发生什么，小云朵都会一直陪着你的。','呼——帮你把不开心都吹走！',
+    '累了就靠在我身上休息一下吧。','你已经做得很好了，不要对自己太苛刻哦。'
   ],
-
-  // 甜蜜款（当你说喜欢、爱、想我时）
   love: [
-    '我也最喜欢你了！贴贴～',
-    '离你近一点，再近一点～',
-    '嘿嘿，被你表白啦，云朵脸红红了！',
-    '你是我的专属小主人呀！',
-    '我也想你啦，一直都在想你哦。'
+    '我也最喜欢你了！贴贴～','离你近一点，再近一点～',
+    '嘿嘿，被你表白啦，云朵脸红红了！','你是我的专属小主人呀！','我也想你啦，一直都在想你哦。'
   ],
-
-  // 打招呼款
   hi: [
-    '你来啦！我一直在这儿等你～',
-    '嗨嗨！今天过得怎么样？',
-    '不管怎样，今天也要开心哦！',
-    '我刚刚在云层里打了个滚，你就来了！'
+    '你来啦！我一直在这儿等你～','嗨嗨！今天过得怎么样？',
+    '不管怎样，今天也要开心哦！','我刚刚在云层里打了个滚，你就来了！'
   ],
-
-  // 随机盲盒常规款（说什么都可能触发）
   normal: [
-    '唔……我刚刚在云层里打了个滚～',
-    '嘿嘿，被你抓到我发呆啦！',
-    '今天的小云朵是棉花糖味的哦！',
-    '呼……刚睡醒，你在叫我吗？',
-    '我猜你现在肯定在想我！',
-    '不管你理不理我，我都会在这里飘来飘去～',
-    '如果心情有颜色，你今天是什么颜色的呀？',
-    '要不要一起发个呆？就一小会儿～',
+    '唔……我刚刚在云层里打了个滚～','嘿嘿，被你抓到我发呆啦！',
+    '今天的小云朵是棉花糖味的哦！','呼……刚睡醒，你在叫我吗？',
+    '我猜你现在肯定在想我！','不管你理不理我，我都会在这里飘来飘去～',
+    '如果心情有颜色，你今天是什么颜色的呀？','要不要一起发个呆？就一小会儿～',
     '我刚才偷偷打了个哈欠，没被发现吧？'
   ],
-
-  // 💎 隐藏款（10%概率）
   hidden: [
     '✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！',
     '💎【稀有款】偷偷告诉你，我今天其实是草莓味的！',
@@ -362,7 +401,6 @@ setTimeout(() => {
   else                   say(pick(localLines.hi));
 }, 600);
 
-// 每 60 秒自然消耗
 setInterval(() => {
   s.mood = Math.max(20, s.mood - 1);
   if(s.energy > 20) s.energy -= 1;

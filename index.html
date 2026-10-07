@@ -6,20 +6,23 @@
 <title>小云朵</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  
+  /* 🌤️ 天空蓝背景 + 深色文字 */
   body{
     margin:0;min-height:100vh;display:flex;flex-direction:column;
     align-items:center;justify-content:center;
-    background:linear-gradient(180deg,#0f172a,#1e293b 60%,#334155);
-    font-family:system-ui,-apple-system,sans-serif;color:#fff;
+    background:linear-gradient(180deg,#a2d2ff,#e0f7fa); 
+    font-family:system-ui,-apple-system,sans-serif;color:#334155;
     user-select:none;overflow:hidden;
   }
-  #name{font-size:14px;opacity:.6;letter-spacing:2px}
-  #lv{font-size:12px;opacity:.45;margin-top:4px}
+  #name{font-size:14px;opacity:.75;letter-spacing:2px}
+  #lv{font-size:12px;opacity:.55;margin-top:4px}
 
   /* 云朵舞台 */
   #stage{position:relative;height:280px;width:100%;
     display:flex;align-items:center;justify-content:center;margin:10px 0}
 
+  /* ☁️ 小云朵本体 */
   #cloud{
     position:relative;width:150px;height:90px;
     animation:float 4s ease-in-out infinite;
@@ -30,8 +33,9 @@
     0%,100%{transform:translateY(0)}
     50%{transform:translateY(-14px)}
   }
+  /* 给云朵加一点点阴影，在天空蓝上更立体 */
   .puff{position:absolute;background:#fff;border-radius:50%;
-    box-shadow:0 10px 30px rgba(148,163,184,.35);
+    box-shadow:0 15px 30px rgba(0,0,0,.08), inset 0 -6px 15px rgba(0,0,0,.05);
     transition:background .4s}
   .p1{width:90px;height:90px;left:30px;top:0}
   .p2{width:66px;height:66px;left:0;top:24px}
@@ -45,7 +49,7 @@
   .eye.r{right:52px}
   @keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
   .blush{position:absolute;width:18px;height:10px;border-radius:50%;
-    background:#fda4af;opacity:.55;top:62px;transition:opacity .4s}
+    background:#fda4af;opacity:.7;top:62px;transition:opacity .4s}
   .blush.l{left:36px}
   .blush.r{right:36px}
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
@@ -53,7 +57,7 @@
     border-radius:0 0 16px 16px;transition:all .3s}
 
   /* 低状态的样子 */
-  #cloud.sad .puff{background:#cbd5e1}
+  #cloud.sad .puff{background:#f1f5f9}
   #cloud.sad{filter:saturate(.5)}
   #cloud.sad .mouth{border-bottom:none;border-top:3px solid #334155;
     border-radius:16px 16px 0 0;top:72px}
@@ -62,10 +66,10 @@
   /* 气泡 */
   #bubble{
     position:absolute;top:6px;left:50%;transform:translateX(-50%);
-    background:rgba(255,255,255,.95);color:#1e293b;
+    background:rgba(255,255,255,.95);color:#334155;
     padding:10px 16px;border-radius:16px;font-size:14px;line-height:1.5;
     max-width:260px;text-align:center;opacity:0;transition:opacity .35s;
-    box-shadow:0 8px 24px rgba(0,0,0,.3);
+    box-shadow:0 8px 24px rgba(0,0,0,.1);
   }
   #bubble.show{opacity:1}
   #bubble::after{content:'';position:absolute;bottom:-8px;left:50%;
@@ -75,21 +79,21 @@
   /* 状态条 */
   #bars{display:flex;gap:18px;margin:8px 0 4px;font-size:12px;opacity:.8}
   .bar{text-align:center}
-  .track{width:70px;height:6px;background:rgba(255,255,255,.15);
+  .track{width:70px;height:6px;background:rgba(0,0,0,.08);
     border-radius:99px;overflow:hidden;margin-top:5px}
   .fill{height:100%;border-radius:99px;transition:width .5s}
   #moodFill{background:linear-gradient(90deg,#f472b6,#fb7185)}
   #energyFill{background:linear-gradient(90deg,#38bdf8,#22d3ee)}
   #loveFill{background:linear-gradient(90deg,#facc15,#fb923c)}
 
-  /* 按钮 */
+  /* 按钮 (适配浅色背景) */
   #actions{display:flex;gap:12px;margin-top:18px}
   .btn{
-    padding:12px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
-    background:rgba(255,255,255,.08);color:#fff;font-size:14px;cursor:pointer;
-    transition:.2s;
+    padding:12px 20px;border-radius:999px;border:1px solid rgba(0,0,0,.1);
+    background:rgba(255,255,255,.7);color:#334155;font-size:14px;cursor:pointer;
+    transition:.2s;box-shadow: 0 4px 12px rgba(0,0,0,.05);
   }
-  .btn:active{transform:scale(.94);background:rgba(255,255,255,.18)}
+  .btn:active{transform:scale(.94);background:rgba(255,255,255,.95)}
 
   /* 飘心 */
   .heart{position:absolute;font-size:18px;pointer-events:none;
@@ -134,7 +138,7 @@
 
 <script>
 /* ================================================================
-   ★★★ 娇娇，你的配置已经写好了 ★★★
+   ★★★ 配置区：已经填好了你的地址和密钥 ★★★
    ================================================================ */
 const API_URL = 'https://coze.nankai.edu.cn/api/proxy/api/v1';
 const API_KEY = 'db31mjl4shhas0akskj0';
@@ -243,7 +247,7 @@ async function askAgent(input, isChat = false){
         method:'POST',
         headers:{
           'Content-Type':'application/json',
-          'Authorization': 'Bearer ' + API_KEY // 👈 带上了密钥
+          'Authorization': 'Bearer ' + API_KEY
         },
         body: JSON.stringify({
           message: input,
@@ -258,11 +262,9 @@ async function askAgent(input, isChat = false){
       const d = await r.json();
       console.log('✅ 小云朵返回的数据:', d);
 
-      // 应对多种可能的返回结构
       return d.reply || d.text || d.answer || d.data?.content || d.data?.reply || '……';
     }catch(e){
       console.error('❌ 调用API失败，启用本地兜底:', e);
-      // 失败时不报错，走本地兜底
     }
   }
 

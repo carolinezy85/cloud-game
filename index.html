@@ -291,12 +291,17 @@ async function askAgent(input, isChat = false){
           'Content-Type':'application/json',
           'Authorization': 'Bearer ' + API_KEY
         },
-        body: JSON.stringify({
+                body: JSON.stringify({
           bot_id: BOT_ID,
-          user_id: "jiaojiao_user", // 固定用户标识，用于关联上下文
-          // 把状态巧妙地传给小云朵，让它在扣子知道娇娇现在累不累
-          query: `当前状态：心情${s.mood}，能量${s.energy}，亲密${s.love}。娇娇说：${input}`,
-          stream: false
+          user_id: "jiaojiao_user",
+          stream: false,
+          additional_messages: [
+            {
+              role: "user",
+              content: `当前状态：心情${s.mood}，能量${s.energy}，亲密${s.love}。娇娇说：${input}`,
+              content_type: "text"
+            }
+          ]
         })
       });
       

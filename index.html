@@ -22,20 +22,32 @@
   #stage{position:relative;height:280px;width:100%;
     display:flex;align-items:center;justify-content:center;margin:10px 0}
 
+  /* 🔍 新增：云朵放大镜容器 */
+  #cloud-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px; 
+    height: 90px;
+    /* 👇 娇娇，调整下面这个数字就能整体放大缩小！1.3是放大30% */
+    transform: scale(1.3); 
+    transform-origin: center center;
+  }
+
   /* ☁️ 小云朵本体 */
   #cloud{
     position:relative;width:150px;height:90px;
     animation:float 4s ease-in-out infinite;
     transition:filter .4s;
     cursor:pointer;
-    transform-origin: center bottom; /* 让弹跳的锚点在底部 */
+    transform-origin: center bottom; 
   }
   @keyframes float{
     0%,100%{transform:translateY(0)}
     50%{transform:translateY(-14px)}
   }
   
-  /* 💥 新增：Q弹动画 */
+  /* 💥 Q弹动画 */
   @keyframes cloudBounce {
     0% { transform: translateY(0) scale(1); }
     30% { transform: translateY(10px) scale(1.1, 0.9); }
@@ -65,17 +77,17 @@
   .blush.l{left:36px}
   .blush.r{right:36px}
   
-  /* 👄 嘴巴 + 说话动画 */
+  /* 👄 嘴巴 + 说话动画 (已调慢调柔) */
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
     transform:translateX(-50%);border-bottom:3px solid #334155;
     border-radius:0 0 16px 16px;transition:all .3s}
     
   @keyframes talkAnim {
     0%, 100% { transform: translateX(-50%) scaleY(1); }
-    50% { transform: translateX(-50%) scaleY(0.2); }
+    50% { transform: translateX(-50%) scaleY(0.6); }
   }
   #cloud.talking .mouth {
-    animation: talkAnim 0.2s infinite;
+    animation: talkAnim 0.6s ease-in-out infinite;
   }
 
   /* 低状态的样子 */
@@ -91,7 +103,7 @@
     background:rgba(255,255,255,.95);color:#334155;
     padding:10px 16px;border-radius:16px;font-size:14px;line-height:1.5;
     max-width:260px;text-align:center;opacity:0;transition:opacity .35s;
-    box-shadow:0 8px 24px rgba(0,0,0,.1);
+    box-shadow:0 8px 24px rgba(0,0,0,.1); z-index: 10;
   }
   #bubble.show{opacity:1}
   #bubble::after{content:'';position:absolute;bottom:-8px;left:50%;
@@ -133,16 +145,19 @@
 
   <div id="stage">
     <div id="bubble"></div>
-    <div id="cloud">
-      <div class="puff p1"></div>
-      <div class="puff p2"></div>
-      <div class="puff p3"></div>
-      <div class="puff p4"></div>
-      <div class="eye l"></div>
-      <div class="eye r"></div>
-      <div class="blush l"></div>
-      <div class="blush r"></div>
-      <div class="mouth"></div>
+    <!-- 👇 新增了 wrapper 包裹层 -->
+    <div id="cloud-wrapper">
+      <div id="cloud">
+        <div class="puff p1"></div>
+        <div class="puff p2"></div>
+        <div class="puff p3"></div>
+        <div class="puff p4"></div>
+        <div class="eye l"></div>
+        <div class="eye r"></div>
+        <div class="blush l"></div>
+        <div class="blush r"></div>
+        <div class="mouth"></div>
+      </div>
     </div>
   </div>
 
@@ -202,10 +217,8 @@ function render(){
   cloud.classList.toggle('sleepy', s.energy < 25);
 }
 
-// 🎈 触发 Q弹效果
 function triggerBounce(){
   cloud.classList.remove('bounce');
-  // 强制浏览器重绘，让动画能重复触发
   void cloud.offsetWidth;
   cloud.classList.add('bounce');
   setTimeout(() => cloud.classList.remove('bounce'), 500);
@@ -215,7 +228,6 @@ function say(text, ms = 2600){
   bubble.textContent = text;
   bubble.classList.add('show');
   
-  // 👄 张嘴说话
   cloud.classList.add('talking');
   
   clearTimeout(say._t);
@@ -241,7 +253,7 @@ async function pet(){
   s.mood = Math.min(100, s.mood + 6);
   s.love += 1;
   popHearts(2, '💗');
-  triggerBounce(); // 💥 触发弹跳
+  triggerBounce();
   render(); save();
   say(await askAgent('主人摸了摸你'));
 }
@@ -251,7 +263,7 @@ async function feed(){
   s.energy = Math.min(100, s.energy + 15);
   s.mood   = Math.min(100, s.mood + 3);
   popHearts(3, '✨');
-  triggerBounce(); // 💥 触发弹跳
+  triggerBounce();
   render(); save();
   say(await askAgent('主人喂你吃了云朵棉花糖'));
 }

@@ -22,14 +22,14 @@
   #stage{position:relative;height:280px;width:100%;
     display:flex;align-items:center;justify-content:center;margin:10px 0}
 
-  /* 🔍 新增：云朵放大镜容器 */
+  /* 🔍 云朵放大镜容器 */
   #cloud-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 150px; 
     height: 90px;
-    /* 👇 娇娇，调整下面这个数字就能整体放大缩小！1.3是放大30% */
+    /* 👇 调整大小改这里！1.3是放大30% */
     transform: scale(1.3); 
     transform-origin: center center;
   }
@@ -77,7 +77,7 @@
   .blush.l{left:36px}
   .blush.r{right:36px}
   
-  /* 👄 嘴巴 + 说话动画 (已调慢调柔) */
+  /* 👄 嘴巴 + 说话动画 (速度适中) */
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
     transform:translateX(-50%);border-bottom:3px solid #334155;
     border-radius:0 0 16px 16px;transition:all .3s}
@@ -145,7 +145,6 @@
 
   <div id="stage">
     <div id="bubble"></div>
-    <!-- 👇 新增了 wrapper 包裹层 -->
     <div id="cloud-wrapper">
       <div id="cloud">
         <div class="puff p1"></div>
@@ -175,9 +174,9 @@
 
 <script>
 /* ================================================================
-   ★★★ 配置区 ★★★
+   ★★★ 配置区：已经换成了 Vercel 代理地址！ ★★★
    ================================================================ */
-const API_URL = 'https://coze.nankai.edu.cn/api/proxy/api/v1';
+const API_URL = 'https://vercel-api-proxy-ten-kappa.vercel.app/https/coze.nankai.edu.cn/api/proxy/api/v1';
 const API_KEY = 'db31mjl4shhas0akskj0';
 const KB_API  = '';   
 const KB_ID   = '';   
@@ -227,7 +226,6 @@ function triggerBounce(){
 function say(text, ms = 2600){
   bubble.textContent = text;
   bubble.classList.add('show');
-  
   cloud.classList.add('talking');
   
   clearTimeout(say._t);
@@ -287,6 +285,7 @@ cloud.addEventListener('click', pet);
 async function askAgent(input, isChat = false){
   if(API_URL && API_KEY){
     try{
+      console.log('📡 正在通过 Vercel 代理请求小云朵的大脑...');
       const r = await fetch(API_URL, {
         method:'POST',
         headers:{
@@ -300,6 +299,7 @@ async function askAgent(input, isChat = false){
       });
       if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
       const d = await r.json();
+      console.log('✅ 小云朵返回的数据:', d);
       return d.reply || d.text || d.answer || d.data?.content || d.data?.reply || '……';
     }catch(e){
       console.error('❌ 调用API失败，启用本地兜底:', e);

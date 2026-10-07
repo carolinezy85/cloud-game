@@ -3,36 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<!-- ☁️ 专属小云朵图标，解决 favicon 404 报错 -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☁️</text></svg>">
 <title>小云朵</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   
-  /* 🌤️ 天空背景（带小云朵） */
+  /* 🌤️ 天空背景 */
   body{
     margin:0;min-height:100vh;display:flex;flex-direction:column;
     align-items:center;justify-content:center;
-    background:linear-gradient(180deg,#9cd2fe 0%,#e0f4ff 100%); /* 更接近图片的蓝白渐变 */
+    background:linear-gradient(180deg,#9cd2fe 0%,#e0f4ff 100%);
     font-family:system-ui,-apple-system,sans-serif;color:#334155;
     user-select:none;overflow:hidden;
+    transition: background 1.5s ease;
   }
 
-  /* ✨ 背景云层动画 */
+  /* ☔ 雨天模式 */
+  body.weather-rainy {
+    background: linear-gradient(180deg,#64748b 0%,#94a3b8 100%);
+    color: #e2e8f0;
+  }
+  body.weather-rainy #bubble { background: rgba(30,41,59,.95); color: #f8fafc; }
+  body.weather-rainy #bubble::after { border-top-color: rgba(30,41,59,.95); }
+  body.weather-rainy .track { background: rgba(255,255,255,.2); }
+  body.weather-rainy .btn { background: rgba(255,255,255,.1); color: #f8fafc; border-color: rgba(255,255,255,.2); }
+  body.weather-rainy .cloud-bg { opacity: 0.3; }
+
   #sky-bg {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0; pointer-events: none; overflow: hidden;
   }
+  
+  /* 🌧️ 雨滴 */
+  .raindrop {
+    position: absolute; top: -20px; width: 2px; height: 15px;
+    background: rgba(255,255,255,.6); border-radius: 2px;
+    animation: fall linear infinite;
+  }
+  @keyframes fall {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(110vh); opacity: 0.2; }
+  }
+
   .cloud-bg {
-    position: absolute;
-    background: #fff;
-    border-radius: 50px;
-    opacity: 0.8;
-    filter: blur(4px); /* 让云朵毛茸茸的 */
-    animation: drift linear infinite;
+    position: absolute; background: #fff; border-radius: 50px; opacity: 0.8;
+    filter: blur(4px); animation: drift linear infinite;
   }
-  /* 用伪元素做出云朵的"小鼓包" */
   .cloud-bg::before {
     content: ''; position: absolute; top: -25px; left: 20px;
     width: 60px; height: 60px; background: #fff; border-radius: 50%;
@@ -41,8 +58,6 @@
     content: ''; position: absolute; top: -15px; right: 20px;
     width: 50px; height: 50px; background: #fff; border-radius: 50%;
   }
-
-  /* 四个不同大小、速度的背景云 */
   .c1 { width: 120px; height: 40px; top: 15%; left: -200px; animation-duration: 25s; }
   .c2 { width: 180px; height: 60px; top: 35%; left: -250px; animation-duration: 35s; animation-delay: 5s; opacity: 0.6; filter: blur(6px); }
   .c3 { width: 90px; height: 30px; top: 70%; left: -150px; animation-duration: 20s; animation-delay: 12s; opacity: 0.9; }
@@ -54,31 +69,17 @@
     100% { transform: translateX(120vw) translateY(0); }
   }
 
-  /* 确保内容在云层之上 */
-  #name, #lv, #stage, #bars, #actions {
-    position: relative;
-    z-index: 1;
-  }
-
+  #name, #lv, #stage, #bars, #actions { position: relative; z-index: 1; }
   #name{font-size:14px;opacity:.75;letter-spacing:2px}
   #lv{font-size:12px;opacity:.55;margin-top:4px}
 
-  /* 云朵舞台 */
-  #stage{position:relative;height:280px;width:100%;
-    display:flex;align-items:center;justify-content:center;margin:10px 0}
+  #stage{position:relative;height:280px;width:100%;display:flex;align-items:center;justify-content:center;margin:10px 0}
 
-  /* 🔍 云朵放大镜容器 */
   #cloud-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 150px; 
-    height: 90px;
-    transform: scale(1.3); 
-    transform-origin: center center;
+    display: flex; align-items: center; justify-content: center;
+    width: 150px; height: 90px; transform: scale(1.3); transform-origin: center center;
   }
 
-  /* ☁️ 小云朵本体 */
   #cloud{
     position:relative;width:150px;height:90px;
     animation:float 4s ease-in-out infinite;
@@ -91,7 +92,6 @@
     50%{transform:translateY(-14px)}
   }
   
-  /* 💥 Q弹动画 */
   @keyframes cloudBounce {
     0% { transform: translateY(0) scale(1); }
     30% { transform: translateY(10px) scale(1.1, 0.9); }
@@ -100,41 +100,76 @@
   }
   #cloud.bounce { animation: cloudBounce 0.5s ease-out; }
 
-  .puff{position:absolute;background:#fff;border-radius:50%;
-    box-shadow:0 15px 30px rgba(0,0,0,.08), inset 0 -6px 15px rgba(0,0,0,.05);
-    transition:background .4s}
+  /* ☁️ 立体云朵材质 */
+  .puff{
+    position:absolute; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffffff 0%, #f4f9fd 60%, #e2effa 100%);
+    box-shadow: 
+      0 10px 20px rgba(0,0,0,0.08), 
+      inset 0 -6px 12px rgba(148, 163, 184, 0.15), 
+      inset 0 6px 10px rgba(255, 255, 255, 1);
+    border: 1px solid rgba(255,255,255,0.8);
+    transition:background .4s;
+  }
   .p1{width:90px;height:90px;left:30px;top:0}
   .p2{width:66px;height:66px;left:0;top:24px}
   .p3{width:74px;height:74px;right:0;top:18px}
   .p4{width:110px;height:56px;left:20px;bottom:0;border-radius:40px}
 
-  /* 表情 */
+  /* 表情基础状态 */
   .eye{position:absolute;width:12px;height:14px;background:#334155;
-    border-radius:50%;top:44px;animation:blink 5s infinite}
+    border-radius:50%;top:44px;animation:blink 5s infinite; z-index: 2;}
   .eye.l{left:52px}
   .eye.r{right:52px}
   @keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+  
   .blush{position:absolute;width:18px;height:10px;border-radius:50%;
-    background:#fda4af;opacity:.7;top:62px;transition:opacity .4s}
+    background:#fda4af;opacity:.7;top:62px;transition:all .4s; z-index: 2;}
   .blush.l{left:36px}
   .blush.r{right:36px}
   
-  /* 👄 嘴巴 + 说话动画 */
   .mouth{position:absolute;width:16px;height:8px;left:50%;top:68px;
     transform:translateX(-50%);border-bottom:3px solid #334155;
-    border-radius:0 0 16px 16px;transition:all .3s}
+    border-radius:0 0 16px 16px;transition:all .3s; z-index: 2;}
+    
   @keyframes talkAnim {
     0%, 100% { transform: translateX(-50%) scaleY(1); }
     50% { transform: translateX(-50%) scaleY(0.6); }
   }
   #cloud.talking .mouth { animation: talkAnim 0.6s ease-in-out infinite; }
 
-  /* 低状态的样子 */
-  #cloud.sad .puff{background:#f1f5f9}
-  #cloud.sad{filter:saturate(.5)}
-  #cloud.sad .mouth{border-bottom:none;border-top:3px solid #334155;
-    border-radius:16px 16px 0 0;top:72px}
-  #cloud.sleepy .eye{height:3px;border-radius:3px;top:50px}
+  /* 睡觉 */
+  #cloud.sleeping .eye { height: 3px; border-radius: 3px; top: 50px; animation: none; }
+  #cloud.sleeping .mouth { width: 10px; height: 10px; border-radius: 50%; border-bottom: 2px solid #334155; top: 66px; }
+  #cloud.sleeping .blush { opacity: 0.4; }
+  
+  /* 害羞 */
+  #cloud.shy .eye { animation: none; transform: scaleY(0.6) translateY(5px); }
+  #cloud.shy .blush { opacity: 1; background: #fb7185; transform: scale(1.3); }
+
+  /* 好奇 */
+  @keyframes lookAround {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  #cloud.looking .eye { animation: lookAround 2s ease-in-out infinite; }
+  #cloud.looking .eye.l { left: 48px; }
+  #cloud.looking .eye.r { right: 48px; }
+
+  /* 睡觉 Zzz */
+  .zzz {
+    position: absolute; top: -10px; right: 20px;
+    font-size: 14px; font-weight: bold; color: #64748b;
+    opacity: 0; pointer-events: none;
+    animation: floatZ 2s infinite ease-in-out; z-index: 2;
+  }
+  @keyframes floatZ {
+    0% { opacity: 0; transform: translateY(0) scale(0.8); }
+    50% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+    100% { opacity: 0; transform: translateY(-40px) scale(0.8); }
+  }
+  #cloud.sleeping .zzz { opacity: 1; }
 
   /* 气泡 */
   #bubble{
@@ -152,8 +187,7 @@
   /* 状态条 */
   #bars{display:flex;gap:18px;margin:8px 0 4px;font-size:12px;opacity:.8}
   .bar{text-align:center}
-  .track{width:70px;height:6px;background:rgba(0,0,0,.08);
-    border-radius:99px;overflow:hidden;margin-top:5px}
+  .track{width:70px;height:6px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;margin-top:5px}
   .fill{height:100%;border-radius:99px;transition:width .5s}
   #moodFill{background:linear-gradient(90deg,#f472b6,#fb7185)}
   #energyFill{background:linear-gradient(90deg,#38bdf8,#22d3ee)}
@@ -170,22 +204,54 @@
   .btn:active{transform:scale(.94);background:rgba(255,255,255,.95)}
 
   /* 飘心 */
-  .heart{position:absolute;font-size:18px;pointer-events:none;
-    animation:rise 1.2s ease-out forwards}
+  .heart{position:absolute;font-size:18px;pointer-events:none;animation:rise 1.2s ease-out forwards}
   @keyframes rise{
     0%{opacity:1;transform:translateY(0) scale(.6)}
     100%{opacity:0;transform:translateY(-90px) scale(1.3)}
   }
+
+  /* 自定义对话框 */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.2); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+  .modal-content {
+    background: rgba(255,255,255,0.95); border-radius: 24px; padding: 24px;
+    width: 85%; max-width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    text-align: center; border: 1px solid rgba(255,255,255,0.8);
+    transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .modal-overlay.show .modal-content { transform: scale(1); }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #334155; }
+  #talk-input {
+    width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.8); font-size: 14px; color: #334155; outline: none;
+    transition: border 0.2s, background 0.2s; box-sizing: border-box;
+  }
+  #talk-input:focus { border-color: #93c5fd; background: #fff; box-shadow: 0 0 0 4px rgba(147,197,253,0.2); }
+  .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+  .modal-btn {
+    flex: 1; padding: 12px; border-radius: 14px; font-size: 14px; border: none;
+    cursor: pointer; font-weight: 600; transition: transform 0.1s, background 0.2s;
+  }
+  .modal-btn:active { transform: scale(0.96); }
+  .modal-btn.cancel { background: #f1f5f9; color: #64748b; }
+  .modal-btn.cancel:hover { background: #e2e8f0; }
+  .modal-btn.confirm { background: #60a5fa; color: #fff; box-shadow: 0 4px 12px rgba(96,165,250,0.4); }
+  .modal-btn.confirm:hover { background: #3b82f6; }
 </style>
 </head>
 <body>
 
-  <!-- 👇 加在背景里的动态云朵 -->
   <div id="sky-bg">
     <div class="cloud-bg c1"></div>
     <div class="cloud-bg c2"></div>
     <div class="cloud-bg c3"></div>
     <div class="cloud-bg c4"></div>
+    <div id="rain-container"></div>
   </div>
 
   <div id="name">小 云 朵</div>
@@ -204,6 +270,7 @@
         <div class="blush l"></div>
         <div class="blush r"></div>
         <div class="mouth"></div>
+        <div class="zzz">Zzz</div>
       </div>
     </div>
   </div>
@@ -220,9 +287,20 @@
     <button class="btn" onclick="talk()">说话</button>
   </div>
 
+  <div id="talk-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">想对小云朵说什么？</div>
+      <input type="text" id="talk-input" placeholder="例如：早安、你是谁、下雨了..." maxlength="50" autocomplete="off">
+      <div class="modal-buttons">
+        <button class="modal-btn cancel" onclick="closeTalkModal()">取消</button>
+        <button class="modal-btn confirm" onclick="submitTalk()">发送</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 /* ================================================================
-   ★★★ 单机盲盒音效版（带动态天空背景） ★★★
+   ★★★ 单机盲盒音效版 (海量台词库) ★★★
    ================================================================ */
 
 const KEY = 'xiaoyunduo';
@@ -246,36 +324,24 @@ function save(){
 const cloud  = document.getElementById('cloud');
 const bubble = document.getElementById('bubble');
 
-/* ============ 🔊 声音合成引擎 (Web Audio API) ============ */
+/* ============ 🔊 声音合成引擎 ============ */
 let audioCtx = null;
-
 function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }
-
 function playTone(freq, type = 'sine', duration = 0.1, volume = 0.1, delay = 0) {
   if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  
   osc.type = type;
   osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
-  
   gain.gain.setValueAtTime(volume, audioCtx.currentTime + delay);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
-  
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  
+  osc.connect(gain); gain.connect(audioCtx.destination);
   osc.start(audioCtx.currentTime + delay);
   osc.stop(audioCtx.currentTime + delay + duration);
 }
-
 const sfx = {
   pet: () => { playTone(600, 'sine', 0.1, 0.15); playTone(800, 'sine', 0.1, 0.1, 0.05); },
   feed: () => { playTone(523.25, 'triangle', 0.1, 0.15); playTone(659.25, 'triangle', 0.15, 0.15, 0.1); },
@@ -283,8 +349,30 @@ const sfx = {
   magic: () => { [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => playTone(f, 'sine', 0.4, 0.1, i * 0.1)); }
 };
 
-/* ============ 渲染与互动 ============ */
+/* ============ 天气与状态系统 ============ */
+function setWeather(weather) {
+  const body = document.body;
+  const rainContainer = document.getElementById('rain-container');
 
+  if (weather === 'rainy') {
+    body.classList.add('weather-rainy');
+    if (rainContainer.children.length === 0) {
+      for (let i = 0; i < 40; i++) {
+        const drop = document.createElement('div');
+        drop.className = 'raindrop';
+        drop.style.left = Math.random() * 100 + 'vw';
+        drop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+        drop.style.animationDelay = (Math.random() * 2) + 's';
+        rainContainer.appendChild(drop);
+      }
+    }
+  } else {
+    body.classList.remove('weather-rainy');
+    rainContainer.innerHTML = '';
+  }
+}
+
+/* ============ 渲染与小动作逻辑 ============ */
 function render(){
   document.getElementById('moodFill').style.width   = s.mood + '%';
   document.getElementById('energyFill').style.width = s.energy + '%';
@@ -294,8 +382,11 @@ function render(){
   const lv = Math.min(5, Math.floor(s.love / 20) + 1);
   document.getElementById('lv').textContent = `Lv.${lv} · ${titles[lv-1]}`;
 
-  cloud.classList.toggle('sad',    s.mood < 45 || s.energy < 40);
-  cloud.classList.toggle('sleepy', s.energy < 25);
+  if (s.energy < 15) {
+    cloud.classList.add('sleeping');
+  } else if (s.energy >= 30) {
+    cloud.classList.remove('sleeping');
+  }
 }
 
 function triggerBounce(){
@@ -305,11 +396,23 @@ function triggerBounce(){
   setTimeout(() => cloud.classList.remove('bounce'), 500);
 }
 
+function triggerShy(){
+  cloud.classList.add('shy');
+  setTimeout(() => cloud.classList.remove('shy'), 1500);
+}
+
+function triggerLooking(){
+  if (cloud.classList.contains('sleeping') || cloud.classList.contains('talking')) return;
+  cloud.classList.add('looking');
+  setTimeout(() => cloud.classList.remove('looking'), 2000);
+}
+setInterval(() => { if (Math.random() < 0.4) triggerLooking(); }, 8000);
+
 function say(text, ms = 2600){
   bubble.textContent = text;
   bubble.classList.add('show');
   cloud.classList.add('talking');
-  
+  cloud.classList.remove('looking');
   clearTimeout(say._t);
   say._t = setTimeout(() => {
     bubble.classList.remove('show');
@@ -334,7 +437,7 @@ function pet(){
   s.mood = Math.min(100, s.mood + 6);
   s.love += 1;
   popHearts(2, '💗');
-  triggerBounce();
+  triggerBounce(); triggerShy();
   render(); save();
   say(pick(localLines.pet));
 }
@@ -350,42 +453,136 @@ function feed(){
   say(pick(localLines.feed));
 }
 
+/* ============ 自定义对话框逻辑 ============ */
 function talk(){
   initAudio();
-  const msg = prompt('想对小云朵说什么？');
-  if(!msg) return;
+  const modal = document.getElementById('talk-modal');
+  modal.classList.add('show');
+  setTimeout(() => document.getElementById('talk-input').focus(), 100);
+}
+
+function closeTalkModal() {
+  document.getElementById('talk-modal').classList.remove('show');
+  document.getElementById('talk-input').value = '';
+}
+
+function submitTalk() {
+  const msg = document.getElementById('talk-input').value.trim();
+  if (!msg) return;
+  closeTalkModal();
   say('……', 800);
 
   setTimeout(() => {
     let reply = "";
-    if (Math.random() < 0.1) {
+    
+    // 判断用户说了什么
+    if (msg.includes('你是谁') || msg.includes('叫什么')) {
+      reply = pick(localLines.identity); sfx.talk();
+    } else if (msg.includes('可爱') || msg.includes('好棒') || msg.includes('喜欢你')) {
+      reply = pick(localLines.praise); sfx.talk();
+    } else if (msg.includes('雨') || msg.includes('变天')) {
+      setWeather('rainy');
+      reply = pick(localLines.weatherRain); sfx.talk();
+    } else if (msg.includes('晴') || msg.includes('出太阳') || msg.includes('雨停')) {
+      setWeather('sunny');
+      reply = pick(localLines.weatherSunny); sfx.talk();
+    } else if (msg.includes('早安') || msg.includes('早上好') || msg.includes('早')) {
+      s.energy = Math.max(60, s.energy);
+      cloud.classList.remove('sleeping');
+      reply = pick(localLines.morning); sfx.feed(); triggerBounce();
+    } else if (msg.includes('晚安') || msg.includes('睡了') || msg.includes('睡觉') || msg.includes('困了')) {
+      cloud.classList.add('sleeping');
+      reply = pick(localLines.night); sfx.pet();
+    } else if (Math.random() < 0.1) {
       reply = pick(localLines.hidden); sfx.magic(); popHearts(5, '🌈');
     } else if (msg.includes('累') || msg.includes('烦') || msg.includes('难过')) {
       reply = pick(localLines.comfort); sfx.talk();
-    } else if (msg.includes('喜欢') || msg.includes('爱') || msg.includes('想你')) {
+    } else if (msg.includes('爱') || msg.includes('想你')) {
       reply = pick(localLines.love); sfx.talk();
     } else if (msg.includes('你好') || msg.includes('嗨') || msg.includes('在吗')) {
       reply = pick(localLines.hi); sfx.talk();
     } else {
       reply = pick(localLines.normal); sfx.talk();
     }
+    
     say(reply, 4000);
     s.love += 1; s.mood = Math.min(100, s.mood + 2);
     render(); save();
   }, 600);
 }
 
+// 绑定回车发送
+document.getElementById('talk-input').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') submitTalk();
+});
+
+// 点击遮罩关闭
+document.getElementById('talk-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeTalkModal();
+});
+
 cloud.addEventListener('click', () => { initAudio(); pet(); });
 
-/* ============ 文本库 ============ */
+/* ============ 📚 海量文本库 ============ */
 const localLines = {
-  pet:   ['唔……好舒服','再摸摸～','嘿嘿，你在呀','我喜欢你摸我','呼噜呼噜～'],
-  feed:  ['哇！甜甜的','云朵棉花糖！','吃饱啦，谢谢你','能量满满！','今天吃的是草莓味耶！'],
-  comfort: ['摸摸头，今天辛苦啦～','抱抱你，烦恼都变成气泡飞走啦！','不管发生什么，小云朵都会一直陪着你的。','呼——帮你把不开心都吹走！','累了就靠在我身上休息一下吧。','你已经做得很好了，不要对自己太苛刻哦。'],
-  love: ['我也最喜欢你了！贴贴～','离你近一点，再近一点～','嘿嘿，被你表白啦，云朵脸红红了！','你是我的专属小主人呀！','我也想你啦，一直都在想你哦。'],
-  hi: ['你来啦！我一直在这儿等你～','嗨嗨！今天过得怎么样？','不管怎样，今天也要开心哦！','我刚刚在云层里打了个滚，你就来了！'],
-  normal: ['唔……我刚刚在云层里打了个滚～','嘿嘿，被你抓到我发呆啦！','今天的小云朵是棉花糖味的哦！','呼……刚睡醒，你在叫我吗？','我猜你现在肯定在想我！','不管你理不理我，我都会在这里飘来飘去～','如果心情有颜色，你今天是什么颜色的呀？','要不要一起发个呆？就一小会儿～','我刚才偷偷打了个哈欠，没被发现吧？'],
-  hidden: ['✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！','💎【稀有款】偷偷告诉你，我今天其实是草莓味的！','🌟【传说款】其实……我是老天爷派来专门陪你的小云朵！','🎉【彩蛋】哔哔——小云朵卡壳了，并趁机卖了个萌！','🌈【限定款】今天的小云朵光环全开，为你赶走所有不开心！']
+  pet: [
+    '唔……好舒服～', '再摸摸嘛～', '嘿嘿，你在呀！', '我喜欢你摸我～', '呼噜呼噜～',
+    '哇，你的手好暖和～', '再靠近一点点～', '嘿嘿，被你摸到啦！', '好软好软，像在做梦～'
+  ],
+  feed: [
+    '哇！甜甜的！', '云朵棉花糖！', '吃饱啦，谢谢你～', '能量满满！', '今天吃的是草莓味耶！',
+    '唔，好满足～', '再来一口好不好？', '吃饱饱，长高高～', '这一定是世界上最好吃的云朵！'
+  ],
+  comfort: [
+    '摸摸头，今天辛苦啦～', '抱抱你，烦恼都变成气泡飞走啦！', '不管发生什么，小云朵都会一直陪着你的。',
+    '呼——帮你把不开心都吹走！', '累了就靠在我身上休息一下吧。', '你已经做得很好了，不要对自己太苛刻哦。',
+    '如果觉得累了，就躲进我的云层里睡一觉吧～', '不开心的事情，都要变成雨滴落掉哦！', '给你一个大大的云朵抱抱！'
+  ],
+  love: [
+    '我也最喜欢你了！贴贴～', '离你近一点，再近一点～', '嘿嘿，被你表白啦，云朵脸红红了！',
+    '你是我的专属小主人呀！', '我也想你啦，一直都在想你哦。', '不管你去哪里，我都会飘在你头顶的～',
+    '这一秒，我的心跳声比雨滴还要快！', '抱抱你，让我的软绵绵治愈你～'
+  ],
+  hi: [
+    '你来啦！我一直在这儿等你～', '嗨嗨！今天过得怎么样？', '不管怎样，今天也要开心哦！',
+    '我刚刚在云层里打了个滚，你就来了！', '哇，你终于出现啦～', '嘿嘿，是不是想我啦？', '叮咚！你的小云朵已上线～'
+  ],
+  normal: [
+    '唔……我刚刚在云层里打了个滚～', '嘿嘿，被你抓到我发呆啦！', '今天的小云朵是棉花糖味的哦！',
+    '呼……刚睡醒，你在叫我吗？', '我猜你现在肯定在想我！', '不管你理不理我，我都会在这里飘来飘去～',
+    '如果心情有颜色，你今天是什么颜色的呀？', '要不要一起发个呆？就一小会儿～', '我刚才偷偷打了个哈欠，没被发现吧？',
+    '你猜猜，我的云朵里藏着什么秘密？', '今天的天空好蓝呀，像你一样～', '我刚刚在偷偷看你哦！', '你笑了吗？你笑了我就开心啦！'
+  ],
+  identity: [
+    '我是娇娇专属的小云朵呀！', '我是住在你手机里的守护精灵～', '我是你的专属解压小宠物，小云朵！',
+    '我是由软绵绵的云朵和好多好多对你的喜欢组成的！', '我是一朵只属于你的小云朵，别人都不知道哦～'
+  ],
+  praise: [
+    '嘿嘿，被你夸得都不好意思啦！', '我是不是世界上最可爱的云？', '哇！你夸我啦，我要飘到天上去了！',
+    '被你夸奖，我的云朵边缘都变粉红色了～', '哼，我本来就很可爱嘛！（傲娇）', '谢谢你！你也是我最喜欢的小主人！'
+  ],
+  weatherRain: [
+    '下雨啦，哗啦啦，我们躲在云里听雨吧～', '滴答滴答，你听到雨的声音了吗？', '下雨天，最适合窝在一起发呆啦～',
+    '雨点落在我的身上，凉丝丝的～', '我们一起听雨声吧，这声音好治愈。', '虽然外面在下雨，但我的云层里很温暖哦！'
+  ],
+  weatherSunny: [
+    '雨停啦，太阳出来咯，心情也晴朗起来～', '哇，阳光好暖和，晒得我软绵绵的～', '天晴啦！我们一起晒太阳吧！',
+    '乌云飞走啦，今天也是充满希望的一天！', '太阳公公出来啦，我身上都发光了呢！'
+  ],
+  morning: [
+    '早安呀！我醒啦，新的一天也要元气满满哦！', '早呀！今天也是被娇娇叫醒的一天～', '叮铃铃～小云朵早安播报开始啦！',
+    '早上好！我昨晚梦到你了呢～', '新的一天，小云朵依然爱你哦！'
+  ],
+  night: [
+    '呼……好困，娇娇晚安，Zzz…', '晚安娇娇，梦里也要有云朵哦～', '盖好被子，小云朵要给你关灯啦～',
+    '今天辛苦啦，好好睡一觉吧，我守着你～', '晚安，明天见，我会在梦里变成小羊～'
+  ],
+  hidden: [
+    '✨【隐藏款】恭喜！你今天抽中了\'云朵之吻\'！', '💎【稀有款】偷偷告诉你，我今天其实是草莓味的！',
+    '🌟【传说款】其实……我是老天爷派来专门陪你的小云朵！', '🎉【彩蛋】哔哔——小云朵卡壳了，并趁机卖了个萌！',
+    '🌈【限定款】今天的小云朵光环全开，为你赶走所有不开心！', '👑【王者款】娇娇今天运气爆棚！小云朵给你颁发\'最佳主人\'奖！',
+    '🌙【梦幻款】我刚刚偷偷去月亮上给你摘了一颗星星，藏在我的云朵里啦！'
+  ]
 };
 
 function pick(a){ return a[Math.floor(Math.random() * a.length)]; }

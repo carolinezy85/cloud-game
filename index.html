@@ -402,8 +402,8 @@ function render(){
   document.getElementById('loveFill').style.width   = Math.min(100, s.love % 100) + '%';
   document.getElementById('name').textContent = customName;
 
-  const titles = ['刚认识','有点熟','好朋友','很黏你','离不开你'];
-  const lv = Math.min(5, Math.floor(s.love / 20) + 1);
+  const titles = ['刚认识','有点熟','好朋友','很黏你','离不开你','心意相通','命中注定','灵魂伴侣','永恒羁绊'];
+  const lv = Math.min(titles.length, Math.floor(s.love / 20) + 1);
   document.getElementById('lv').textContent = `Lv.${lv} · ${titles[lv-1]}`;
 
   if (isManualSleep) { cloud.classList.add('sleeping'); } 
@@ -566,7 +566,12 @@ function startStarGame() {
 function getFortune() {
   initAudio(); sfx.magic();
   const today = new Date().toDateString();
-  if (localStorage.getItem('xiaoyunduo_fortune_date') === today) { say('你今天已经抽过啦，明天再来吧～'); return; }
+  const savedFortune = localStorage.getItem('xiaoyunduo_fortune_content');
+  
+  if (localStorage.getItem('xiaoyunduo_fortune_date') === today) { 
+    say(`你今天已经抽过啦！\n上次抽到的是：\n${savedFortune || '（记录走丢了）'}\n明天再来吧～`, 6000); 
+    return; 
+  }
 
   const fortunes = [
     { level: '🌟 大吉', desc: '今天运气爆棚！适合摸鱼，忌加班，适合吃点甜的～', color: '天蓝色', num: '7' },
@@ -577,8 +582,15 @@ function getFortune() {
     { level: '☁️ 平', desc: '今天什么都不用想，做一朵快乐的云就好啦！', color: '云朵白', num: '1' }
   ];
 
-  const f = pick(fortunes); localStorage.setItem('xiaoyunduo_fortune_date', today);
-  popHearts(6, '✨'); say(`🔮 今日运势：${f.level}\n${f.desc}\n🎨 幸运色：${f.color}\n🍀 幸运数字：${f.num}`, 6000);
+  const f = pick(fortunes); 
+  const fortuneText = `🔮 今日运势：${f.level}\n${f.desc}\n🎨 幸运色：${f.color}\n🍀 幸运数字：${f.num}`;
+  
+  // 把日期和内容都存下来
+  localStorage.setItem('xiaoyunduo_fortune_date', today);
+  localStorage.setItem('xiaoyunduo_fortune_content', fortuneText);
+  
+  popHearts(6, '✨'); 
+  say(fortuneText, 6000);
 }
 
 /* ============ 🏷️ 改名 ============ */
